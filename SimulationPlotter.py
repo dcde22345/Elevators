@@ -53,10 +53,10 @@ class SimPlotter:
         self.y = [e.x for e in el]
         self.o = [e.is_open for e in el]
         for pl,y,o in zip(self.el,self.y,self.o):
-            pl.set_ydata(y)
+            pl.set_ydata([y])
             pl.set_markerfacecolor('w' if o else 'r')
         for i in range(self.W):
-            self.mps[i].set_ydata(self.y[i])
+            self.mps[i].set_ydata([self.y[i]])
         for i,eps in enumerate(self.mps):
             ps_in_el = moving_passengers[i]
             eps.set_markersize(10*ps_in_el)

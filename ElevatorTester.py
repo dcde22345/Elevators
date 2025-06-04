@@ -276,7 +276,19 @@ class Tester:
                             'Blocked\nentrances', 'Non-served\npassengers'))
         ax.legend(self.names)
         # draw
-        plt.get_current_fig_manager().window.showMaximized()
+        try:
+            # Try to maximize window if supported by the backend
+            fig_manager = plt.get_current_fig_manager()
+            if hasattr(fig_manager, 'window'):
+                if hasattr(fig_manager.window, 'showMaximized'):
+                    fig_manager.window.showMaximized()
+                elif hasattr(fig_manager.window, 'wm_state'):
+                    fig_manager.window.wm_state('zoomed')  # Windows
+                elif hasattr(fig_manager, 'window') and hasattr(fig_manager.window, 'state'):
+                    fig_manager.window.state('zoomed')  # Alternative for some backends
+        except Exception:
+            # If maximizing fails, just continue without maximizing
+            pass
         plt.draw()
         plt.pause(1e-17)
 

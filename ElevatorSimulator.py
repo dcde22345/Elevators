@@ -1,4 +1,3 @@
-
 from MyTools import *
 import ElevatorManager
 from Elevator import Elevator
@@ -45,7 +44,7 @@ class Simulator:
     def __init__(self, manager=ElevatorManager.NaiveManager, debug_mode=False, verbose=True,
                  sim_len=120, sim_pace=None, time_resolution=0.5, logfile=None, seed=1,
                  n_floors=3, n_elevators=2, capacity=4, speed=1, open_time=2,
-                 arrival_pace=1/10, p_between=0.1, p_up=0.45, size=1.5, delay=3):
+                 arrival_pace=1/10, floor_arrival_rates=None, p_between=0.1, p_up=0.45, size=1.5, delay=3):
 
         # Note: default time unit is seconds.
         self.debug = debug_mode
@@ -83,7 +82,16 @@ class Simulator:
 
         ## Passengers
         # conf
-        self.arrivals_pace = arrival_pace # arrivals per second
+        self.arrivals_pace = arrival_pace # arrivals per second (global, for backward compatibility)
+        # NEW: floor-specific arrival rates (arrivals per second per floor)
+        if floor_arrival_rates is not None:
+            if len(floor_arrival_rates) != n_floors + 1:
+                raise ValueError(f"floor_arrival_rates must have {n_floors + 1} elements (floors 0 to {n_floors})")
+            self.floor_arrival_rates = floor_arrival_rates
+        else:
+            # Use global arrival_pace for all floors if not specified
+            self.floor_arrival_rates = None
+            
         self.p_go_between = p_between
         self.p_go_up = p_up
         self.p_go_down = 1 - (self.p_go_between + self.p_go_up)
@@ -109,25 +117,71 @@ class Simulator:
         if verbose is None: verbose = self.debug
         if self.seed is not None: np.random.seed(self.seed)
 
-        n_arrivals = np.random.poisson(self.sim_len * self.arrivals_pace)
+        all_arrivals = []
+        
+        if self.floor_arrival_rates is not None:
+            # Use floor-specific arrival rates
+            if self.verbose:
+                print("Using floor-specific arrival rates:")
+                for floor, rate in enumerate(self.floor_arrival_rates):
+                    print(f"  Floor {floor}: {rate:.3f} arrivals/sec")
+            
+            for floor in range(self.n_floors + 1):
+                if self.floor_arrival_rates[floor] > 0:
+                    # Generate arrivals for this specific floor
+                    n_arrivals_floor = np.random.poisson(self.sim_len * self.floor_arrival_rates[floor])
+                    
+                    if n_arrivals_floor > 0:
+                        a_times = list(np.sort(self.sim_len * np.random.rand(n_arrivals_floor)))
+                        a_sizes = list(np.floor(1+np.random.exponential(self.arrival_size-1, n_arrivals_floor)).astype(int))
+                        a_delays = list(np.random.gamma(self.delay/8, 8, n_arrivals_floor))
+                        
+                        # For floor-specific arrivals, set starting floor and determine destinations
+                        for i in range(n_arrivals_floor):
+                            if floor == 0:
+                                # Ground floor - only go up
+                                a_to = int(1 + self.n_floors * np.random.rand())
+                            elif floor == self.n_floors:
+                                # Top floor - only go down
+                                a_to = int(self.n_floors * np.random.rand())
+                            else:
+                                # Middle floors - can go up or down
+                                if np.random.rand() < 0.5:
+                                    # Go up
+                                    a_to = int(floor + 1 + (self.n_floors - floor) * np.random.rand())
+                                else:
+                                    # Go down  
+                                    a_to = int(floor * np.random.rand())
+                            
+                            arrival = Arrival(a_times[i], a_sizes[i], a_delays[i], floor, a_to)
+                            all_arrivals.append(arrival)
+            
+            # Sort all arrivals by time
+            all_arrivals.sort(key=lambda x: x.t)
+            self.scenario = tuple(all_arrivals)
+            
+        else:
+            # Use original global arrival_pace method for backward compatibility
+            n_arrivals = np.random.poisson(self.sim_len * self.arrivals_pace)
 
-        a_times = list(np.sort(self.sim_len * np.random.rand(n_arrivals)))
-        a_sizes = list(np.floor(1+np.random.exponential(self.arrival_size-1,n_arrivals)).astype(int))
-        a_delays = list(np.random.gamma(self.delay/8,8,n_arrivals))
-        #list(np.random.lognormal(0,np.sqrt(self.delay),n_arrivals))
-        a_types = list(np.random.choice(['up', 'down', 'between'], n_arrivals, True,
-                                               (self.p_go_up, self.p_go_down, self.p_go_between)))
-        a_from = [(0 if tp=='up' else int(1+self.n_floors*np.random.rand()))
-                  for tp in a_types]
-        a_to = [(0 if tp=='down' else
-                 int(1+self.n_floors*np.random.rand()) if tp=='up' else
-                 np.random.choice(list(set(list(range(self.n_floors+1)))-{0,a_from[i]})) )
-                for i,tp in zip(range(n_arrivals),a_types)]
+            a_times = list(np.sort(self.sim_len * np.random.rand(n_arrivals)))
+            a_sizes = list(np.floor(1+np.random.exponential(self.arrival_size-1,n_arrivals)).astype(int))
+            a_delays = list(np.random.gamma(self.delay/8,8,n_arrivals))
+            #list(np.random.lognormal(0,np.sqrt(self.delay),n_arrivals))
+            a_types = list(np.random.choice(['up', 'down', 'between'], n_arrivals, True,
+                                                   (self.p_go_up, self.p_go_down, self.p_go_between)))
+            a_from = [(0 if tp=='up' else int(1+self.n_floors*np.random.rand()))
+                      for tp in a_types]
+            a_to = [(0 if tp=='down' else
+                     int(1+self.n_floors*np.random.rand()) if tp=='up' else
+                     np.random.choice(list(set(list(range(self.n_floors+1)))-{0,a_from[i]})) )
+                    for i,tp in zip(range(n_arrivals),a_types)]
 
-        self.scenario = tuple([Arrival(t,n,d,xi,xf)
-                         for (t,n,d,xi,xf) in zip(a_times,a_sizes,a_delays,a_from,a_to)])
+            self.scenario = tuple([Arrival(t,n,d,xi,xf)
+                             for (t,n,d,xi,xf) in zip(a_times,a_sizes,a_delays,a_from,a_to)])
 
         if verbose:
+            print(f"\nGenerated {len(self.scenario)} arrival events:")
             for i,arr in enumerate(self.scenario):
                 arr.print(i)
 
@@ -491,7 +545,19 @@ class Simulator:
         ax.set_xticks(())
         ax.set_yticks(())
         # draw
-        plt.get_current_fig_manager().window.showMaximized()
+        try:
+            # Try to maximize window if supported by the backend
+            fig_manager = plt.get_current_fig_manager()
+            if hasattr(fig_manager, 'window'):
+                if hasattr(fig_manager.window, 'showMaximized'):
+                    fig_manager.window.showMaximized()
+                elif hasattr(fig_manager.window, 'wm_state'):
+                    fig_manager.window.wm_state('zoomed')  # Windows
+                elif hasattr(fig_manager, 'window') and hasattr(fig_manager.window, 'state'):
+                    fig_manager.window.state('zoomed')  # Alternative for some backends
+        except Exception:
+            # If maximizing fails, just continue without maximizing
+            pass
         plt.draw()
         plt.pause(1e-17)
 
@@ -511,9 +577,13 @@ class Simulator:
 
 if __name__ == "__main__":
     sim_pace = 100 if 'verbose' in sys.argv else None
-    arrival_pace = 1/8
-    x = Simulator(sim_pace=sim_pace, arrival_pace=arrival_pace,
-                  manager=ElevatorManager.NaiveRoundRobin)
+    arrival_pace = 9
+    x = Simulator(
+        n_floors=12,
+        n_elevators=4,
+        sim_pace=sim_pace, arrival_pace=arrival_pace,
+        manager=ElevatorManager.NaiveRoundRobin,
+    )
     x.generate_scenario()
     summary = x.run_simulation()
     plt.show()
