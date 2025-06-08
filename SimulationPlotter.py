@@ -30,22 +30,24 @@ class SimPlotter:
         # axes
         axes = plt.gca()
         axes.set_xlim(-2,self.W)
-        axes.set_ylim(-0.5,self.H+0.5)
+        axes.set_ylim(-0.5,self.H-0.5)
         plt.xticks(list(range(self.W)))
-        plt.yticks(list(range(self.H+1)))
+        plt.yticks(list(range(self.H)))
         plt.title("Elevators Simulator")
         self.update_time()
         # elevators
-        self.pipes = [plt.plot(2*[i], [0,self.H], 'k-', linewidth=32)[0]
+        self.pipes = [plt.plot(2*[i], [0,self.H-1], 'k-', linewidth=32)[0]
                       for i in range(self.W)]
         self.el = [plt.plot(i,self.y[i],'rs',markersize=29,
                             markerfacecolor='r',markeredgewidth=3)[0]
                    for i in range(self.W)]
         # waiting passengers
-        self.wps = [plt.plot(-1, i, 'b.', markersize=0)[0]
-                    for i in range(self.H+1)]
+        self.wps = [plt.text(-1, i, '', fontsize=12, color='blue', 
+                             ha='center', va='center', weight='bold')
+                    for i in range(self.H)]
         # moving passengers
-        self.mps = [plt.plot(i, self.y[i], 'b.', markersize=0)[0]
+        self.mps = [plt.text(i, self.y[i], '', fontsize=12, color='green', 
+                             ha='center', va='center', weight='bold')
                     for i in range(self.W)]
 
     def update_plot(self, dt, el, waiting_passengers, moving_passengers):
@@ -56,13 +58,18 @@ class SimPlotter:
             pl.set_ydata([y])
             pl.set_markerfacecolor('w' if o else 'r')
         for i in range(self.W):
-            self.mps[i].set_ydata([self.y[i]])
-        for i,eps in enumerate(self.mps):
-            ps_in_el = moving_passengers[i]
-            eps.set_markersize(10*ps_in_el)
-        for floor in range(self.H+1):
+            self.mps[i].set_position((i, self.y[i]))
+            ps_in_el = moving_passengers[i]  # moving_passengers[i] is already the count
+            if ps_in_el > 0:
+                self.mps[i].set_text(str(ps_in_el))
+            else:
+                self.mps[i].set_text('')
+        for floor in range(self.H):
             ps_in_fl = waiting_passengers.count(floor)
-            self.wps[floor].set_markersize(10*ps_in_fl)
+            if ps_in_fl > 0:
+                self.wps[floor].set_text(str(ps_in_fl))
+            else:
+                self.wps[floor].set_text('')
         self.t += dt
         self.update_time()
         plt.draw()

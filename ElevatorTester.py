@@ -4,7 +4,7 @@ import numpy as np
 import pickle
 from prettytable import PrettyTable
 import matplotlib.pyplot as plt
-import ElevatorSimulator, ElevatorManager, DirectManager
+import ElevatorSimulator, ElevatorManager, algorithm.LookAlgorithm as LookAlgorithm
 
 '''
     ElevatorTester
@@ -16,9 +16,23 @@ import ElevatorSimulator, ElevatorManager, DirectManager
 
 ELEVATOR_TESTS_MANAGERS = (ElevatorManager.NaiveRoundRobin,
                            ElevatorManager.GreedyManager,
-                           DirectManager.DirectManager,)
+                           LookAlgorithm.DirectManager,)
 
 ELEVATOR_TESTS_CONFS = [
+    {
+        'name': 'Commerce Department\n(low)',
+        'sim_len': 10*60,
+        'n_floors': 13,
+        'n_elevators': 4,
+        'capacity': 4,
+        'speed': 1/3,
+        'open_time': 3,
+        'arrival_pace': 1/60,
+        'p_between': 1/20,
+        'p_up': 0.5-1/40,
+        'size': 1.5,
+        'delay': 3.5
+    },
     {
         'name': 'Residence\n(low)',
         'sim_len': 60*60,

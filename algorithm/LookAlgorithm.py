@@ -218,13 +218,57 @@ class DirectManager(NaiveManager):
             return 0
 
     def choose_rest_floor(self, l):
-        # TODO
-        return self.el[l].x
+        """
+        選擇電梯休息樓層
+        讓所有電梯在沒有任務時回到一樓（樓層0）等待
+        """
+        return 0  # 回到一樓
 
     def choose_elevator(self, t, xi, xf):
-        # TODO
-        return np.argmin([len(self.onway[l])+len(self.ascending[l])+len(self.descending[l])
-                          for l in range(self.N)])
+        """
+        選擇電梯的策略：
+        1. 計算乘客想要的方向
+        2. 優先選擇方向匹配的電梯（包括靜止的電梯）
+        3. 在匹配的電梯中選擇負載最小的
+        4. 如果沒有匹配的電梯，選擇總負載最小的
+        """
+        # 計算乘客想要的方向
+        passenger_direction = 1 if xf > xi else -1  # 1 for up, -1 for down
+        
+        # 找出方向匹配的電梯
+        compatible_elevators = []
+        for l in range(self.N):
+            elevator_motion = self.el[l].motion
+            
+            # 電梯方向匹配條件：
+            # 1. 電梯靜止 (motion == 0) - 可以接任何方向
+            # 2. 電梯方向與乘客方向相同
+            if elevator_motion == 0 or elevator_motion == passenger_direction:
+                compatible_elevators.append(l)
+        
+        if compatible_elevators:
+            # 在方向匹配的電梯中選擇負載最小的
+            def get_total_load(l):
+                return len(self.onway[l]) + len(self.ascending[l]) + len(self.descending[l])
+            
+            best_elevator = min(compatible_elevators, key=get_total_load)
+            
+            # Debug 信息（可選）
+            if hasattr(self, 'debug') and self.debug:
+                direction_str = "up" if passenger_direction == 1 else "down"
+                print(f"乘客 {xi}->{xf} (方向:{direction_str}) 分配給方向匹配的電梯 #{best_elevator}")
+            
+            return best_elevator
+        else:
+            # 如果沒有方向匹配的電梯，回到原來的邏輯（選擇負載最小的）
+            best_elevator = np.argmin([len(self.onway[l])+len(self.ascending[l])+len(self.descending[l])
+                                      for l in range(self.N)])
+            
+            if hasattr(self, 'debug') and self.debug:
+                direction_str = "up" if passenger_direction == 1 else "down"
+                print(f"乘客 {xi}->{xf} (方向:{direction_str}) 無匹配方向電梯，分配給負載最小的電梯 #{best_elevator}")
+            
+            return best_elevator
 
     def choose_next_direction(self, l):
         # TODO
@@ -233,7 +277,7 @@ class DirectManager(NaiveManager):
 
 if __name__ == "__main__":
     import ElevatorTester, matplotlib.pyplot as plt
-    c = ElevatorTester.ELEVATOR_TESTS_CONFS[-1]
+    c = ElevatorTester.ELEVATOR_TESTS_CONFS[0]
     c['sim_len'] = 120
     x = ElevatorTester.ManagerTester(DirectManager, c, -1)
     x.single_test(c)
