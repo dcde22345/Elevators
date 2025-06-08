@@ -1,16 +1,16 @@
-
 from MyTools import *
 import numpy as np
+from typing import List, Optional
 
 class Elevator:
-
-    def __init__(self, index, n_floors, capacity, speed, open_time):
+    def __init__(self, index, n_floors, capacity, speed, open_time, limitations: Optional[List[int]] = None):
         # Configuration
         self.idx = index
         self.N = n_floors
         self.capacity = capacity
         self.speed = speed
         self.open_time = open_time
+        self.limitations = limitations
         # Initialization
         self.x, self.is_open, self.motion = nones(3)
         self.missions, self.total_opens, self.total_distance = nones(3)
@@ -44,3 +44,10 @@ class Elevator:
         '''Get elevator expected location after i missions.'''
         x = [l for l in self.missions[:i] if l is not None]
         return x[-1] if x else self.x
+
+    def can_go_to(self, xf: int) -> bool:
+        """檢查電梯是否可以到達指定樓層"""
+        if self.limitations is None:
+            return True
+        else:
+            return xf not in self.limitations

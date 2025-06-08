@@ -6,7 +6,7 @@ from ElevatorSimulator import Simulator
 
 
 if __name__ == "__main__":
-    sim_pace = 100 if 'verbose' in sys.argv else None
+    sim_pace = 1000 if 'verbose' in sys.argv else None
 
     data = [
         [0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 1],                        # B1f
@@ -44,6 +44,13 @@ if __name__ == "__main__":
     destination_probabilities = [[destination_probabilities[j][i] for j in range(len(destination_probabilities))] 
                                     for i in range(len(data))]
 
+    limitations = [
+        None,                         # 能夠到達B1-12樓
+        [2, 3, 4, 5],            # 能夠到達B1, 1樓, 6樓-12樓
+        [0, 2, 3, 5, 7, 9, 11],  # 能夠到達4, 6, 8, 10, 12樓
+        [0, 2, 4, 6, 8, 10, 12]  # 能夠到達3, 5, 7, 9, 11樓
+    ]
+
     x = Simulator(
         n_floors=13,  # （B1-f12，共13個樓層）
         n_elevators=4,
@@ -51,8 +58,9 @@ if __name__ == "__main__":
         sim_pace=sim_pace,
         floor_arrival_rates=floor_arrival_rates,  # 使用樓層特定的到達率
         destination_probabilities=destination_probabilities,  # 使用機率矩陣
-        manager=DDSManager,
-        debug_mode=True
+        manager=Look,
+        limitations=None,
+        debug_mode=False
     )
 
     x.generate_scenario()

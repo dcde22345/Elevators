@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys, pprint
 from warnings import warn
+from typing import List
 
 
 class Simulator:
@@ -42,9 +43,9 @@ class Simulator:
     Written by Ido Greenberg, 2018
     '''
 
-    def __init__(self, manager=ElevatorManager.NaiveManager, debug_mode=False, verbose=True,
+    def __init__(self, manager=ElevatorManager.NaiveManager, debug_mode=False, limitations=None, verbose=True,
                  sim_len=120, sim_pace=None, time_resolution=0.5, logfile=None, seed=1,
-                 n_floors=3, n_elevators=2, capacity=15, speed=1, open_time=2,
+                 n_floors=3, n_elevators=2, capacity=15, speed=1, open_time=2, 
                  arrival_pace=1/10, floor_arrival_rates=None, destination_probabilities=None, p_between=0.1, p_up=0.45, size=1.5, delay=3):
 
         # Note: default time unit is seconds.
@@ -76,8 +77,16 @@ class Simulator:
         el_open_time = open_time # = time to open = time to close
         # init
         self.el_next_event_time = [np.inf for _ in range(self.n_elevators)]
-        self.el = [Elevator(i, self.n_floors, el_capacity, el_speed, el_open_time)
-                   for i in range(self.n_elevators)]
+        
+        # if limitations is not None, use the limitations
+        if limitations:
+            self.el = [
+                Elevator(i, self.n_floors, el_capacity, el_speed, el_open_time, limitations[i])
+                for i in range(self.n_elevators)
+            ]
+        else:
+            self.el = [Elevator(i, self.n_floors, el_capacity, el_speed, el_open_time)
+                       for i in range(self.n_elevators)]
         self.sim_plot = SimPlotter(self.n_floors, self.n_elevators, sim_pace) \
             if sim_pace is not None else None
 
@@ -116,6 +125,21 @@ class Simulator:
                                        self.p_go_up, self.p_go_down, self.p_go_between,
                                        self.arrival_size, self.delay)
 
+    def _can_serve_passenger(self, xi: int, xf: int) -> bool:
+        """檢查是否有任何一台電梯能夠服務這個乘客請求"""
+        for el in self.el:
+            if el.can_go_to(xi) and el.can_go_to(xf):
+                return True
+        return False
+
+    def _get_valid_destinations_for_floor(self, floor: int) -> List[int]:
+        """獲得指定樓層的所有可達目的地"""
+        valid_destinations = []
+        for dest_floor in range(self.n_floors + 1):
+            if dest_floor != floor and self._can_serve_passenger(floor, dest_floor):
+                valid_destinations.append(dest_floor)
+        return valid_destinations
+
     def generate_scenario(self, verbose=None):
 
         if verbose is None: verbose = self.debug
@@ -142,6 +166,12 @@ class Simulator:
                         
                         # For floor-specific arrivals, set starting floor and determine destinations
                         for i in range(n_arrivals_floor):
+                            # 首先檢查這個樓層是否有可達的目的地
+                            valid_destinations_for_floor = self._get_valid_destinations_for_floor(floor)
+                            if not valid_destinations_for_floor:
+                                # 這個樓層沒有任何可達的目的地，跳過這個arrival
+                                continue
+                                
                             # Use destination probabilities if available
                             if self.destination_probabilities is not None:
                                 target_probs = self.destination_probabilities[floor]
@@ -149,11 +179,11 @@ class Simulator:
                                 prob_sum = sum(target_probs)
                                 if prob_sum > 0:
                                     normalized_probs = [p/prob_sum for p in target_probs]
-                                    # Remove self-destination (floor to same floor) if probability is 0
+                                    # Remove self-destination and unreachable destinations
                                     valid_destinations = []
                                     valid_probs = []
                                     for dest_floor, prob in enumerate(normalized_probs):
-                                        if dest_floor != floor and prob > 0:
+                                        if dest_floor != floor and prob > 0 and dest_floor in valid_destinations_for_floor:
                                             valid_destinations.append(dest_floor)
                                             valid_probs.append(prob)
                                     
@@ -164,17 +194,17 @@ class Simulator:
                                             valid_probs = [p/prob_sum for p in valid_probs]
                                             a_to = np.random.choice(valid_destinations, p=valid_probs)
                                         else:
-                                            # Fallback to original logic
-                                            a_to = self._fallback_destination(floor)
+                                            # Fallback: choose randomly from valid destinations
+                                            a_to = np.random.choice(valid_destinations_for_floor)
                                     else:
-                                        # Fallback to original logic
-                                        a_to = self._fallback_destination(floor)
+                                        # Fallback: choose randomly from valid destinations
+                                        a_to = np.random.choice(valid_destinations_for_floor)
                                 else:
-                                    # Fallback to original logic
-                                    a_to = self._fallback_destination(floor)
+                                    # Fallback: choose randomly from valid destinations
+                                    a_to = np.random.choice(valid_destinations_for_floor)
                             else:
-                                # Use original logic when no probability matrix available
-                                a_to = self._fallback_destination(floor)
+                                # No probability matrix available, choose randomly from valid destinations
+                                a_to = np.random.choice(valid_destinations_for_floor)
                             
                             arrival = Arrival(a_times[i], a_sizes[i], a_delays[i], floor, a_to)
                             all_arrivals.append(arrival)
@@ -195,10 +225,53 @@ class Simulator:
                                                    (self.p_go_up, self.p_go_down, self.p_go_between)))
             a_from = [(0 if tp=='up' else int(1+self.n_floors*np.random.rand()))
                       for tp in a_types]
-            a_to = [(0 if tp=='down' else
-                     int(1+self.n_floors*np.random.rand()) if tp=='up' else
-                     np.random.choice(list(set(list(range(self.n_floors+1)))-{0,a_from[i]})) )
-                    for i,tp in zip(range(n_arrivals),a_types)]
+            
+            # 修改目的地生成邏輯，考慮電梯限制
+            a_to = []
+            valid_indices = []  # 記錄有效的索引
+            for i, tp in enumerate(a_types):
+                from_floor = a_from[i]
+                valid_destinations = self._get_valid_destinations_for_floor(from_floor)
+                
+                if not valid_destinations:
+                    # 如果這個起始樓層沒有可達目的地，跳過這個arrival
+                    continue
+                    
+                valid_indices.append(i)  # 記錄這個索引是有效的
+                
+                if tp == 'down':
+                    # 只選擇向下的目的地
+                    down_destinations = [dest for dest in valid_destinations if dest < from_floor]
+                    if down_destinations:
+                        a_to.append(np.random.choice(down_destinations))
+                    else:
+                        # 沒有向下的可達目的地，隨機選擇一個可達目的地
+                        a_to.append(np.random.choice(valid_destinations))
+                elif tp == 'up':
+                    # 只選擇向上的目的地
+                    up_destinations = [dest for dest in valid_destinations if dest > from_floor]
+                    if up_destinations:
+                        a_to.append(np.random.choice(up_destinations))
+                    else:
+                        # 沒有向上的可達目的地，隨機選擇一個可達目的地
+                        a_to.append(np.random.choice(valid_destinations))
+                else:  # 'between'
+                    # 隨機選擇任何可達目的地
+                    a_to.append(np.random.choice(valid_destinations))
+
+            # 根據有效索引重新組織所有陣列
+            if valid_indices:
+                a_from = [a_from[i] for i in valid_indices]
+                a_times = [a_times[i] for i in valid_indices]
+                a_sizes = [a_sizes[i] for i in valid_indices]
+                a_delays = [a_delays[i] for i in valid_indices]
+            else:
+                # 沒有有效的arrival，清空所有陣列
+                a_from = []
+                a_times = []
+                a_sizes = []
+                a_delays = []
+                a_to = []
 
             self.scenario = tuple([Arrival(t,n,d,xi,xf)
                              for (t,n,d,xi,xf) in zip(a_times,a_sizes,a_delays,a_from,a_to)])
@@ -423,6 +496,7 @@ class Simulator:
            - 在同一樓層
            - 方向匹配或電梯靜止
            - 分配給這台電梯或方向匹配的可搭乘
+        3. 有乘客無法到達目的樓層（因為電梯limitations），需要下車轉乘
         """
         el = self.el[i_el]
         current_floor = int(el.x)  # 確保是整數樓層
@@ -430,6 +504,11 @@ class Simulator:
         # 檢查1：有乘客要下車？
         passengers_exiting = [ps for ps in self.moving_passengers[i_el] if ps.xf == current_floor]
         has_exit = len(passengers_exiting) > 0
+        
+        # 檢查3：有乘客因為limitations無法到達目的樓層？
+        stranded_passengers = [ps for ps in self.moving_passengers[i_el] 
+                              if not el.can_go_to(ps.xf)]
+        has_stranded = len(stranded_passengers) > 0
         
         # 檢查2：有乘客要上車？
         passengers_waiting_here = [ps for ps in self.waiting_passengers if ps.xi == current_floor]
@@ -453,16 +532,16 @@ class Simulator:
                 break
         
         # Debug信息
-        if self.debug and (has_exit or has_entry):
+        if self.debug and (has_exit or has_entry or has_stranded):
             exit_count = len(passengers_exiting) if has_exit else 0
+            stranded_count = len(stranded_passengers) if has_stranded else 0
             entry_count = len([ps for ps in passengers_waiting_here 
                               if ps.assigned_el == i_el or ps.assigned_el == -1]) if has_entry else 0
-            self.log("Open Check", f"#{i_el:02d} floor {current_floor}: exit={exit_count}, entry={entry_count}")
+            self.log("Open Check", f"#{i_el:02d} floor {current_floor}: exit={exit_count}, stranded={stranded_count}, entry={entry_count}")
         elif self.debug:
             self.log("Open Check", f"#{i_el:02d} floor {current_floor}: no passengers to serve")
         
-        return has_exit or has_entry
-
+        return has_exit or has_entry or has_stranded
 
     def update_missions(self, missions):
         '''
@@ -535,7 +614,7 @@ class Simulator:
         any_activity = False
         blocked_entrance = False
 
-        # exiting passengers
+        # exiting passengers (normal destination reached)
         picked_up = []
         for j,ps in enumerate(self.moving_passengers[i]):
             if ps.xf == el.x:
@@ -546,6 +625,25 @@ class Simulator:
                 if self.debug:
                     self.log("Exit", f"#{i:02d}\tt={ps.t2-ps.t0:.0f}s")
         for j in sorted(picked_up, reverse=True):
+            del self.moving_passengers[i][j]
+
+        # handle stranded passengers (cannot reach destination due to limitations)
+        stranded_picked_up = []
+        for j,ps in enumerate(self.moving_passengers[i]):
+            if not el.can_go_to(ps.xf):
+                any_activity = True
+                stranded_picked_up.append(j)
+                # Re-add passenger to waiting list with updated starting floor
+                ps.xi = int(el.x)  # Update starting floor to current elevator position
+                ps.assigned_el = -1  # Reset assignment
+                self.waiting_passengers.append(ps)
+                # Re-request elevator service for this passenger
+                missions = self.manager.handle_arrival(self.sim_time, ps.xi, ps.xf)
+                if -1 in missions: ps.assigned_el = missions[-1]
+                self.update_missions(missions)
+                if self.debug:
+                    self.log("Stranded", f"#{i:02d} passenger {ps.xi}->{ps.xf} offloaded - elevator cannot reach destination")
+        for j in sorted(stranded_picked_up, reverse=True):
             del self.moving_passengers[i][j]
 
         # entering passengers
