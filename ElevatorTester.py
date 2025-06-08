@@ -16,7 +16,7 @@ import ElevatorSimulator, ElevatorManager, algorithm.LookAlgorithm as LookAlgori
 
 ELEVATOR_TESTS_MANAGERS = (ElevatorManager.NaiveRoundRobin,
                            ElevatorManager.GreedyManager,
-                           LookAlgorithm.DirectManager,)
+                           LookAlgorithm.Look,)
 
 ELEVATOR_TESTS_CONFS = [
     {

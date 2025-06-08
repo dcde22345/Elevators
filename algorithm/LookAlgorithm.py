@@ -1,10 +1,9 @@
-
 from MyTools import *
 from ElevatorManager import NaiveManager
 import numpy as np
 from warnings import warn
 
-class DirectManager(NaiveManager):
+class Look(NaiveManager):
 
     # Possible elevator states
     UP = 1 # in the middle of a journey upward
@@ -25,7 +24,7 @@ class DirectManager(NaiveManager):
         delta = self.H / (2 * self.nn + 1)
         self.bases = [int(b) for b in np.round(2 * delta * (1 + np.arange(self.nn)))]
         # elevators status
-        self.state = [DirectManager.REST for _ in range(self.N)]
+        self.state = [Look.REST for _ in range(self.N)]
         self.onway = [[] for _ in range(self.N)]
         self.onway_load = [[] for _ in range(self.N)]
         self.ascending = [[] for _ in range(self.N)]
@@ -44,16 +43,16 @@ class DirectManager(NaiveManager):
         self.onway_load[idx] = []
         opened = False
 
-        if self.state[idx] == DirectManager.UP_INIT:
+        if self.state[idx] == Look.UP_INIT:
             self.begin_ascend(idx, self.el[idx].x)
 
-        elif self.state[idx] == DirectManager.DOWN_INIT:
+        elif self.state[idx] == Look.DOWN_INIT:
             self.begin_descend(idx, self.el[idx].x)
 
-        elif self.state[idx] == DirectManager.INIT:
+        elif self.state[idx] == Look.INIT:
             return self.goto_rest(idx)
 
-        elif self.state[idx] in (DirectManager.UP, DirectManager.DOWN):
+        elif self.state[idx] in (Look.UP, Look.DOWN):
             opened = True
             d = self.get_next_direction(idx)
             if self.force_open[d>0][idx]: opened = False
@@ -79,7 +78,7 @@ class DirectManager(NaiveManager):
         return self.get_tasks(l, xi, xf)
 
     def get_tasks(self, l, xi, xf):
-        if self.state[l] in (DirectManager.REST,DirectManager.INIT):
+        if self.state[l] in (Look.REST,Look.INIT):
             self.push_task(l, xi, xf)
             if xi < xf:
                 self.begin_ascend(l, self.el[l].x)
@@ -105,7 +104,7 @@ class DirectManager(NaiveManager):
             raise ValueError("Source & destination floors must be different.", xi, xf)
 
     def is_onway(self, l, x, xi, xf):
-        return self.state[l]==(DirectManager.UP if xi<xf else DirectManager.DOWN) \
+        return self.state[l]==(Look.UP if xi<xf else Look.DOWN) \
                and (xf-xi)*(xi-x)>=0 # not sure if > or >=
 
     def add_onway(self, l, xi, xf):
@@ -122,7 +121,7 @@ class DirectManager(NaiveManager):
         self.add_stop(self.descending[l], self.dec_load[l], xf, -1, True)
 
     def add_stop(self, A, loads, x, count, dec):
-        i = DirectManager.insort(A, x, dec)
+        i = Look.insort(A, x, dec)
         if i < 0:
             loads[-i-1] += count
         else:
@@ -132,12 +131,12 @@ class DirectManager(NaiveManager):
         return [(None,False,0) for _ in range(len(el.missions))]
 
     def generate_tasks(self, l, opened=False):
-        if self.state[l] == DirectManager.INIT:
+        if self.state[l] == Look.INIT:
             warn("generate_tasks() was called at state INIT rather than goto_rest().")
             return []
-        if self.state[l] == DirectManager.UP_INIT:
+        if self.state[l] == Look.UP_INIT:
             return [(self.ascending[l][0],False,-1)]
-        if self.state[l] == DirectManager.DOWN_INIT:
+        if self.state[l] == Look.DOWN_INIT:
             return [(self.descending[l][0],False,-1)]
         return [((x,False,-1) if (i==0 and opened and self.el[l].x==x) else (x,True,-1))
                 for i,x in enumerate(self.onway[l])]
@@ -165,9 +164,9 @@ class DirectManager(NaiveManager):
 
     def update_onway(self, l, x):
         n = 0
-        if self.state[l] == DirectManager.UP:
+        if self.state[l] == Look.UP:
             n = sum(stop<x for stop in self.onway[l]) # inefficient - doesn't exploit the sorted list
-        elif self.state[l] == DirectManager.DOWN:
+        elif self.state[l] == Look.DOWN:
             n = sum(stop>x for stop in self.onway[l]) # inefficient - doesn't exploit the sorted list
         del(self.onway[l][:n])
         del(self.onway_load[l][:n])
@@ -175,11 +174,11 @@ class DirectManager(NaiveManager):
     def begin_ascend(self, l, x):
         xi = self.ascending[l][0]
         if xi < x:
-            self.state[l] = DirectManager.UP_INIT
+            self.state[l] = Look.UP_INIT
             self.onway[l] = []
             self.onway_load[l] = []
         else:
-            self.state[l] = DirectManager.UP
+            self.state[l] = Look.UP
             self.onway[l] = self.ascending[l]
             self.onway_load[l] = self.asc_load[l]
             self.ascending[l] = []
@@ -188,11 +187,11 @@ class DirectManager(NaiveManager):
     def begin_descend(self, l, x):
         xi = self.descending[l][0]
         if xi > x:
-            self.state[l] = DirectManager.DOWN_INIT
+            self.state[l] = Look.DOWN_INIT
             self.onway[l] = []
             self.onway_load[l] = []
         else:
-            self.state[l] = DirectManager.DOWN
+            self.state[l] = Look.DOWN
             self.onway[l] = self.descending[l]
             self.onway_load[l] = self.dec_load[l]
             self.descending[l] = []
@@ -201,21 +200,28 @@ class DirectManager(NaiveManager):
     def goto_rest(self, l):
         x = self.choose_rest_floor(l)
         if x == self.el[l].x:
-            self.state[l] = DirectManager.REST
+            self.state[l] = Look.REST
             return {l: self.cancel_tasks(self.el[l])}
         else:
-            self.state[l] = DirectManager.INIT
+            self.state[l] = Look.INIT
             return {l: self.cancel_tasks(self.el[l])+[(x,False,-1)]}
 
     def get_next_direction(self, l):
-        if self.ascending[l] and self.descending[l]:
-            return self.choose_next_direction(l)
-        elif self.ascending[l]:
+        """
+        LOOK 演算法方向決策：
+        - 若當前方向還有請求，繼續原方向。
+        - 若無，反向（若有反方向請求）。
+        - 若都無，則停止。
+        """
+        if self.state[l] == Look.UP and (self.ascending[l] or self.onway[l]):
             return 1
-        elif self.descending[l]:
+        if self.state[l] == Look.DOWN and (self.descending[l] or self.onway[l]):
             return -1
-        else:
-            return 0
+        if self.ascending[l]:
+            return 1
+        if self.descending[l]:
+            return -1
+        return 0
 
     def choose_rest_floor(self, l):
         """
@@ -226,59 +232,37 @@ class DirectManager(NaiveManager):
 
     def choose_elevator(self, t, xi, xf):
         """
-        選擇電梯的策略：
-        1. 計算乘客想要的方向
-        2. 優先選擇方向匹配的電梯（包括靜止的電梯）
-        3. 在匹配的電梯中選擇負載最小的
-        4. 如果沒有匹配的電梯，選擇總負載最小的
+        LOOK 演算法分配邏輯：
+        1. 優先分配給正在朝請求方向運行且會經過該樓層的電梯（順路同方向）。
+        2. 若無順路電梯，分配給最近的靜止電梯。
+        3. 若都沒有，分配給最近的電梯。
         """
-        # 計算乘客想要的方向
-        passenger_direction = 1 if xf > xi else -1  # 1 for up, -1 for down
-        
-        # 找出方向匹配的電梯
-        compatible_elevators = []
-        for l in range(self.N):
-            elevator_motion = self.el[l].motion
-            
-            # 電梯方向匹配條件：
-            # 1. 電梯靜止 (motion == 0) - 可以接任何方向
-            # 2. 電梯方向與乘客方向相同
-            if elevator_motion == 0 or elevator_motion == passenger_direction:
-                compatible_elevators.append(l)
-        
-        if compatible_elevators:
-            # 在方向匹配的電梯中選擇負載最小的
-            def get_total_load(l):
-                return len(self.onway[l]) + len(self.ascending[l]) + len(self.descending[l])
-            
-            best_elevator = min(compatible_elevators, key=get_total_load)
-            
-            # Debug 信息（可選）
-            if hasattr(self, 'debug') and self.debug:
-                direction_str = "up" if passenger_direction == 1 else "down"
-                print(f"乘客 {xi}->{xf} (方向:{direction_str}) 分配給方向匹配的電梯 #{best_elevator}")
-            
-            return best_elevator
-        else:
-            # 如果沒有方向匹配的電梯，回到原來的邏輯（選擇負載最小的）
-            best_elevator = np.argmin([len(self.onway[l])+len(self.ascending[l])+len(self.descending[l])
-                                      for l in range(self.N)])
-            
-            if hasattr(self, 'debug') and self.debug:
-                direction_str = "up" if passenger_direction == 1 else "down"
-                print(f"乘客 {xi}->{xf} (方向:{direction_str}) 無匹配方向電梯，分配給負載最小的電梯 #{best_elevator}")
-            
-            return best_elevator
+        passenger_direction = 1 if xf > xi else -1
 
-    def choose_next_direction(self, l):
-        # TODO
-        return -1 if self.state[l]==DirectManager.UP else 1
+        # 1. 順路同方向的電梯
+        candidates = []
+        for l in range(self.N):
+            elevator = self.el[l]
+            if elevator.motion == passenger_direction:
+                if (passenger_direction == 1 and elevator.x <= xi) or \
+                   (passenger_direction == -1 and elevator.x >= xi):
+                    candidates.append(l)
+        if candidates:
+            return min(candidates, key=lambda l: abs(self.el[l].x - xi))
+
+        # 2. 最近的靜止電梯
+        idle = [l for l in range(self.N) if self.el[l].motion == 0]
+        if idle:
+            return min(idle, key=lambda l: abs(self.el[l].x - xi))
+
+        # 3. 都沒有，分配給最近的電梯
+        return min(range(self.N), key=lambda l: abs(self.el[l].x - xi))
 
 
 if __name__ == "__main__":
     import ElevatorTester, matplotlib.pyplot as plt
     c = ElevatorTester.ELEVATOR_TESTS_CONFS[0]
     c['sim_len'] = 120
-    x = ElevatorTester.ManagerTester(DirectManager, c, -1)
+    x = ElevatorTester.ManagerTester(Look, c, -1)
     x.single_test(c)
     plt.show()

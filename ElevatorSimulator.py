@@ -3,7 +3,7 @@ import ElevatorManager
 from Elevator import Elevator
 from Passenger import Arrival, Passenger
 from SimulationPlotter import SimPlotter
-from algorithm.LookAlgorithm import DirectManager
+from algorithm.LookAlgorithm import Look
 import matplotlib.pyplot as plt
 import numpy as np
 import sys, pprint
@@ -321,6 +321,20 @@ class Simulator:
     def end_mission(self):
         i_el = int(np.argmin(self.el_next_event_time))
         el = self.el[i_el]
+        
+        # Check if there are any missions to process
+        if not el.missions:
+            # No missions left, handle this case
+            missions = self.manager.handle_no_missions(self.sim_time, i_el)
+            if self.debug:
+                print(f"No missions for elevator {i_el}, getting new missions:", missions)
+            if not i_el in missions or not missions[i_el]:
+                self.el_next_event_time[i_el] = np.inf
+                el.sleep()
+            else:
+                self.update_missions(missions)
+            return
+        
         m = el.missions[0]
         del(el.missions[0])
 
@@ -463,30 +477,53 @@ class Simulator:
             el = self.el[i_el]
             immediate_mission = missions[i_el] and not el.missions
 
+            # Separate removal missions and process them in reverse order to avoid index shifting
+            removal_missions = []
+            other_missions = []
+            
             for m in missions[i_el]:
                 if m[0] is None:
                     # remove mission m: (None, *, m)
-                    assert(m[2]>=0)
-                    del(el.missions[m[2]])
-                    if m[2]==0: immediate_mission = True
-                elif m[2]==-1:
+                    removal_missions.append(m)
+                else:
+                    other_missions.append(m)
+            
+            # Sort removal missions by index in descending order to avoid index shifting issues
+            removal_missions.sort(key=lambda x: x[2], reverse=True)
+            
+            # Process removal missions first
+            for m in removal_missions:
+                if m[2] < 0 or m[2] >= len(el.missions):
+                    warn(f"Skip removing mission: index {m[2]} out of range for elevator {i_el} (missions={el.missions})")
+                    continue
+                del(el.missions[m[2]])
+                if m[2]==0: immediate_mission = True
+            
+            # Process other missions
+            for m in other_missions:
+                if m[2]==-1:
                     # new mission: (destination floor, open/not, -1)
                     el.missions.append(m[0])
                     if m[1]: el.missions.append(None)
                 else:
                     # split existing mission m: (destination floor, open/not, m)
-                    assert(el.missions[m[2]] is not None), "Trying to split an OPEN mission."
+                    if m[2] < 0 or m[2] > len(el.missions):
+                        warn(f"Skip splitting mission: index {m[2]} out of range for elevator {i_el} (missions={el.missions})")
+                        continue
+                    if m[2] < len(el.missions) and el.missions[m[2]] is None:
+                        warn("Trying to split an OPEN mission.")
+                        continue
                     el.missions.insert(m[2], m[0])
                     if m[1]: el.missions.insert(m[2]+1, None)
                     if m[2]==0: immediate_mission = True
 
             if immediate_mission:
-                if el.missions[0] is None:
+                if el.missions and el.missions[0] is None:
                     warn("Unexpected mission assignment: open which does not follow motion.")
                     delay = self.open_el(i_el)
                     self.el_next_event_time[i_el] = self.sim_time + 2*el.open_time + delay
                     el.open()
-                else:
+                elif el.missions:
                     self.el_next_event_time[i_el] = self.sim_time+abs(el.missions[0]-el.x)/el.speed
                     el.move()
 
@@ -742,56 +779,4 @@ class Simulator:
             self.sim_plot.update_plot(dt, self.el,
                                       [wp.xi for wp in self.waiting_passengers],
                                       [len(mp) for mp in self.moving_passengers])
-
-
-if __name__ == "__main__":
-    sim_pace = 20 if 'verbose' in sys.argv else None
-
-    data = [
-        [0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 1],                        # B1f
-        [1, 0, 0, 16.5, 16.5, 11, 30.5, 28.5, 20.5, 9.5, 3.5, 2.5, 4],      # 1f
-        [0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0],                          # 2f
-        [0, 4, 0, 0, 0, 0, 0, 0, 0, 4.5, 0, 0, 0],                          # 3f
-        [0, 13.5, 0.5, 0, 0, 0, 0.5, 0.5, 0.5, 1, 0.5, 0, 0],               # 4f
-        [0, 7.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],                          # 5f
-        [0.5, 12.5, 0.5, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0.5, 0.5],             # 6f
-        [0.5, 7.5, 1.5, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.5, 0.5],                # 7f
-        [0, 6.5, 0.5, 0.5, 1, 0, 0, 0, 0, 0, 0, 0, 0],                      # 8f
-        [0, 6, 0, 0.5, 1, 0.5, 0.5, 1, 0, 0, 0, 0, 0],                      # 9f
-        [0, 4, 0, 0, 0.5, 0, 0.5, 1.5, 0, 0, 0.5, 0, 0],                    # 10f
-        [0, 1, 0, 0, 0, 1, 0, 0.5, 0, 0, 0, 0, 0],                          # 11f
-        [0.5, 4, 0, 0, 0.5, 0, 0.5, 0, 0, 0, 0, 0, 0]                       # 12f
-    ]
-
-    # Calculate arrival rates based on row sums of data matrix
-    # Each row represents passengers starting from that floor
-    # Data is for 10 minutes, so convert to arrivals per second
-    floor_arrival_rates = [sum(row)/(10*60) for row in data]  # 10 minutes = 600 seconds
-    
-    # Calculate destination probability matrix
-    # destination_probabilities[i][j] = probability of going from floor i to floor j
-    destination_probabilities = []
-    for dest_floor in range(len(data[0])):  # for each destination floor
-        col_sum = sum(data[i][dest_floor] for i in range(len(data)))  # sum of column
-        if col_sum > 0:
-            col_probs = [data[i][dest_floor] / col_sum for i in range(len(data))]
-        else:
-            col_probs = [0] * len(data)
-        destination_probabilities.append(col_probs)
-    
-    # Transpose to get destination_probabilities[from_floor][to_floor]
-    destination_probabilities = [[destination_probabilities[j][i] for j in range(len(destination_probabilities))] 
-                                 for i in range(len(data))]
-
-    x = Simulator(
-        n_floors=13,  # （B1-f12，共13個樓層）
-        n_elevators=4,
-        sim_len=10*60,  # 10 minutes = 600 seconds
-        sim_pace=sim_pace,
-        floor_arrival_rates=floor_arrival_rates,  # 使用樓層特定的到達率
-        destination_probabilities=destination_probabilities,  # 使用機率矩陣
-        manager=DirectManager,
-    )
-    x.generate_scenario()
-    summary = x.run_simulation()
-    plt.show()
+            

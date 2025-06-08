@@ -1,13 +1,7 @@
+import sys
 from MyTools import *
-import ElevatorManager
-from Elevator import Elevator
-from Passenger import Arrival, Passenger
-from SimulationPlotter import SimPlotter
-from algorithm.LookAlgorithm import DirectManager
-import matplotlib.pyplot as plt
-import numpy as np
-import sys, pprint
-from warnings import warn
+from algorithm.DDSAlgorithm import DDSManager
+from algorithm.LookAlgorithm import Look
 from ElevatorSimulator import Simulator
 
 
@@ -57,7 +51,8 @@ if __name__ == "__main__":
         sim_pace=sim_pace,
         floor_arrival_rates=floor_arrival_rates,  # 使用樓層特定的到達率
         destination_probabilities=destination_probabilities,  # 使用機率矩陣
-        manager=DirectManager
+        manager=DDSManager,
+        debug_mode=True
     )
 
     x.generate_scenario()
@@ -81,6 +76,3 @@ if __name__ == "__main__":
         print(f"Verification: {avg_service_time:.2f} ≈ {avg_waiting_time:.2f} + {avg_inside_time:.2f} = {avg_waiting_time + avg_inside_time:.2f}")
     else:
         print("沒有乘客完成服務")
-    
-
-    plt.show()
