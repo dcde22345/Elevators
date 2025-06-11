@@ -59,7 +59,7 @@ class Look(NaiveManager):
             self.force_open[0][idx] = False
             self.force_open[1][idx] = False
 
-            if   d > 0:
+            if d > 0:
                 self.begin_ascend(idx, self.el[idx].x)
             elif d < 0:
                 self.begin_descend(idx, self.el[idx].x)

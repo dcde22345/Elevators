@@ -79,3 +79,39 @@ Implementation of this module should take care of the following issues:
 1. **Sampling resolution**: high-resolution (e.g. sample every time the elevators move one floor) permits simple state-space, but low-resolution (e.g. sample when an elevator reaches its destination, etc.) is better synced with the simulator interface.
 2. **State encoding**: compact encoding of the states so that a learner can use an encoded state to make a decision.
 3. **Train & test process**: train the decision-maker in various scenarios and test it.
+
+
+## To be continue
+1. **Elevator Chooser**: Need to fix chooser's dispatcher method
+2. **Presentation**:
+    - poisson distribution generation with timestamp
+    - model with only one elevator
+        - demo
+    - model with 4 elevator -> Look 演算法怪怪的，他不會正確pick up
+        - waiting time boxing plot
+        - waiting time accross time
+        - service time box plot
+        - service time accress time
+    - model with 4 elevator with limitation vs without limitation
+        - waiting time boxing plot
+        - waiting time accross time
+        - service time box plot
+        - service time accress time
+
+    - model with DDS algorithm
+        - waiting time boxing plot
+        - waiting time accross time
+        - service time box plot
+        - service time accress time
+        - 各樓層waiting time
+
+    - service level
+        - 體驗
+
+    - 動機
+    - 資料分析 -> 上課人數
+    - 資料搜集 -> 人流分析
+    - 假設
+    - Simulation
+    - 建議
+    - Exploration

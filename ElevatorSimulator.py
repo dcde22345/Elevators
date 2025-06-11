@@ -9,6 +9,7 @@ import numpy as np
 import sys, pprint
 from warnings import warn
 from typing import List
+from collections import defaultdict
 
 
 class Simulator:
@@ -36,6 +37,31 @@ class Simulator:
             handle next event: handle_arrival() / end_mission() / sim_end()
                 Manager.handle_arrival() / Manager.handle_no_missions()
                 update_missions()
+
+    Parameters:
+        manager (ElevatorManager): 電梯管理演算法，預設為NaiveManager
+        debug_mode (bool): 是否開啟除錯模式，預設為False
+        limitations (list): 電梯樓層限制，預設為None
+        verbose (bool): 是否顯示詳細資訊，預設為True
+        sim_len (int): 模擬時長(秒)，預設為120秒
+        sim_pace (float): 視覺化速度，None為不視覺化，預設為None
+        time_resolution (float): 時間解析度(秒)，預設為0.5秒
+        logfile (str): 日誌檔案路徑，預設為None
+        seed (int): 隨機種子，預設為1
+        n_floors (int): 樓層數，預設為3層
+        n_elevators (int): 電梯數量，預設為2台
+        capacity (int): 電梯容量，預設為15人
+        speed (float): 電梯速度(樓層/秒)，預設為1
+        open_time (int): 開關門時間(秒)，預設為2秒
+        floor_arrival_rates (list): 各樓層乘客到達頻率，預設為None
+        destination_probabilities (list): 目的地機率矩陣，預設為None
+        size (float): 乘客大小，預設為1.5
+        delay (int): 延遲時間(秒)，預設為3秒
+
+        - 在floor_arrival_rates為None時，有arrival_pace時才會啟用
+        arrival_pace (float): 乘客到達頻率(人/秒)，預設為0.1
+        p_between (float): 樓層間移動機率，預設為0.1
+        p_up (float): 向上移動機率，預設為0.45
 
     TODO:
     1. add acceleration_time in addition to open_time (for stops w/o opening)
@@ -209,6 +235,8 @@ class Simulator:
                             arrival = Arrival(a_times[i], a_sizes[i], a_delays[i], floor, a_to)
                             all_arrivals.append(arrival)
             
+            
+            
             # Sort all arrivals by time
             all_arrivals.sort(key=lambda x: x.t)
             self.scenario = tuple(all_arrivals)
@@ -280,6 +308,50 @@ class Simulator:
             print(f"\nGenerated {len(self.scenario)} arrival events:")
             for i,arr in enumerate(self.scenario):
                 arr.print(i)
+        
+        # 使用 AnalysisPlotter 生成乘客流量分析圖表
+        if len(self.scenario) > 0:
+            try:
+                from AnalysisPlotter import AnalysisPlotter
+                
+                # 創建分析繪圖器
+                plotter = AnalysisPlotter(n_floors=self.n_floors)
+                
+                # 分析數據並生成圖表
+                flow_matrix, arrivals_per_minute = plotter.analyze_passenger_flow(self.scenario)
+                
+                print(f"\n=== 乘客流量分析 ===")
+                print(f"場景總乘客數: {int(flow_matrix.sum())}")
+                print(f"模擬時長: {max(arrivals_per_minute.keys()) + 1} 分鐘" if arrivals_per_minute else "模擬時長: 0 分鐘")
+                
+                # 生成並保存圖表
+                print("正在生成乘客流量熱力圖...")
+                plotter.plot_passenger_flow_heatmap(
+                    flow_matrix, 
+                    save_path="images/passenger_flow_heatmap.png",
+                    show_plot=False
+                )
+                
+                print("正在生成每分鐘抵達人數直方圖...")
+                plotter.plot_arrivals_per_minute_histogram(
+                    arrivals_per_minute, 
+                    save_path="arrivals_per_minute_histogram.png",
+                    show_plot=False
+                )
+                
+                # 打印詳細統計信息
+                plotter._print_detailed_statistics(flow_matrix, arrivals_per_minute)
+                
+                print("\n圖表已保存:")
+                print("- passenger_flow_heatmap.png (乘客流量熱力圖)")
+                print("- arrivals_per_minute_histogram.png (每分鐘抵達人數直方圖)")
+                
+            except ImportError:
+                print("\n警告: 無法導入 AnalysisPlotter，跳過圖表生成")
+            except Exception as e:
+                print(f"\n警告: 圖表生成失敗: {str(e)}")
+        else:
+            print("\n場景中沒有乘客抵達事件，跳過圖表生成")
 
     def _fallback_destination(self, floor):
         """Fallback logic for destination selection when probability matrix is not available or invalid"""
@@ -303,6 +375,34 @@ class Simulator:
         end_sim = False
         while not end_sim:
             end_sim = self.handle_next_event()
+        
+        # 在模擬完成後生成額外的分析圖表
+        try:
+            from AnalysisPlotter import AnalysisPlotter
+            
+            # 創建分析繪圖器
+            plotter = AnalysisPlotter(n_floors=self.n_floors)
+            
+            # 準備所有乘客的數據
+            all_passengers_data = {
+                'completed': self.completed_passengers,
+                'moving': [ps for ps_list in self.moving_passengers for ps in ps_list],
+                'waiting': self.waiting_passengers,
+                'sim_time': self.sim_time
+            }
+            
+            # 生成模擬結果分析（包含所有乘客）
+            plotter.generate_simulation_analysis_all_passengers(
+                all_passengers_data,
+                save_plots=True,
+                show_plots=False
+            )
+            
+        except ImportError:
+            print("\n警告: 無法導入 AnalysisPlotter，跳過模擬結果分析")
+        except Exception as e:
+            print(f"\n警告: 模擬結果分析失敗: {str(e)}")
+        
         return end_sim
 
     def sim_initialize(self):
@@ -710,6 +810,101 @@ class Simulator:
             if n_ps_moving else 0
         waiting_max_time = max([self.sim_time-ps.t0 for ps in self.waiting_passengers]) \
             if n_ps_waiting else 0
+        
+        # Print passenger status
+        if verbose:
+            print(f"Passenger status at simulation end:")
+            print(f"  Waiting: {n_ps_waiting} passengers")
+            print(f"  Inside elevators: {n_ps_moving} passengers") 
+            print(f"  Served: {n_ps_completed} passengers")
+            print(f"  Total arrivals: {n_ps_scenario} passengers")
+        # Calculate waiting_time for ALL passengers
+        all_waiting_times = []
+        # 1. Completed passengers: t1 - t0
+        all_waiting_times.extend([ps.t1 - ps.t0 for ps in self.completed_passengers])
+        # 2. Moving passengers: t1 - t0
+        for ps_list in self.moving_passengers:
+            all_waiting_times.extend([ps.t1 - ps.t0 for ps in ps_list])
+        # 3. Waiting passengers: sim_time - t0 (假設現在進入電梯)
+        all_waiting_times.extend([self.sim_time - ps.t0 for ps in self.waiting_passengers])
+        
+        # Calculate inside_time for relevant passengers
+        all_inside_times = []
+        # 1. Completed passengers: t2 - t1
+        all_inside_times.extend([ps.t2 - ps.t1 for ps in self.completed_passengers])
+        # 2. Moving passengers: sim_time - t1 (假設現在離開電梯)
+        for ps_list in self.moving_passengers:
+            all_inside_times.extend([self.sim_time - ps.t1 for ps in ps_list])
+        
+        # Calculate service_time for ALL passengers
+        all_service_times = []
+        # 1. Completed passengers: t2 - t0
+        all_service_times.extend([ps.t2 - ps.t0 for ps in self.completed_passengers])
+        # 2. Moving passengers: sim_time - t0
+        for ps_list in self.moving_passengers:
+            all_service_times.extend([self.sim_time - ps.t0 for ps in ps_list])
+        # 3. Waiting passengers: sim_time - t0
+        all_service_times.extend([self.sim_time - ps.t0 for ps in self.waiting_passengers])
+        
+        # 計算按樓層分組的等待時間統計
+        floor_waiting_stats = {}
+        floor_waiting_times_dict = defaultdict(list)
+        
+        # 1. Completed passengers: t1 - t0
+        for ps in self.completed_passengers:
+            waiting_time = ps.t1 - ps.t0
+            floor_waiting_times_dict[ps.xi].append(waiting_time)
+        
+        # 2. Moving passengers: t1 - t0  
+        for ps_list in self.moving_passengers:
+            for ps in ps_list:
+                waiting_time = ps.t1 - ps.t0
+                floor_waiting_times_dict[ps.xi].append(waiting_time)
+        
+        # 3. Waiting passengers: sim_time - t0 (假設現在進入電梯)
+        for ps in self.waiting_passengers:
+            waiting_time = self.sim_time - ps.t0
+            floor_waiting_times_dict[ps.xi].append(waiting_time)
+        
+        # 計算每個樓層的等待時間統計
+        for floor, times in floor_waiting_times_dict.items():
+            if times:
+                floor_waiting_stats[floor] = {
+                    'count': len(times),
+                    'mean': np.mean(times),
+                    'std': np.std(times),
+                    'min': np.min(times),
+                    'max': np.max(times),
+                    'median': np.median(times)
+                }
+        
+        # 打印樓層等待時間變異性分析
+        if verbose:
+            print(f"\n=== Floor-by-Floor Waiting Time Variability Analysis ===")
+            print(f"{'Floor':<6} {'Count':<6} {'Mean':<8} {'Std':<8} {'CV':<10} {'Min':<8} {'Max':<8} {'Median':<8}")
+            print("-" * 70)
+            
+            for floor in sorted(floor_waiting_stats.keys()):
+                stats = floor_waiting_stats[floor]
+                floor_name = f"{floor}F" if floor > 0 else "B1"
+                cv = stats['std'] / stats['mean'] if stats['mean'] > 0 else 0  # Coefficient of Variation
+                
+                print(f"{floor_name:<6} {stats['count']:<6} {stats['mean']:<8.1f} {stats['std']:<8.1f} "
+                      f"{cv:<10.3f} {stats['min']:<8.1f} {stats['max']:<8.1f} {stats['median']:<8.1f}")
+            
+            # Analyze floors with highest variability
+            if floor_waiting_stats:
+                max_std_floor = max(floor_waiting_stats.items(), key=lambda x: x[1]['std'])
+                min_std_floor = min(floor_waiting_stats.items(), key=lambda x: x[1]['std'])
+                
+                max_cv_floor = max(floor_waiting_stats.items(), 
+                                 key=lambda x: x[1]['std']/x[1]['mean'] if x[1]['mean'] > 0 else 0)
+                
+                print(f"\nVariability Analysis:")
+                print(f"Floor with highest std dev: {max_std_floor[0]}F (std dev: {max_std_floor[1]['std']:.1f}s)")
+                print(f"Floor with lowest std dev: {min_std_floor[0]}F (std dev: {min_std_floor[1]['std']:.1f}s)")
+                print(f"Floor with highest CV: {max_cv_floor[0]}F (CV: {max_cv_floor[1]['std']/max_cv_floor[1]['mean']:.3f})")
+
         # summarize
         summary = {
             "general": {
@@ -717,7 +912,7 @@ class Simulator:
                 "runtime": int(time.time()-self.real_time.ti+0.5)
             },
             "goals": {
-                "service_time": dist([ps.t2-ps.t0 for ps in self.completed_passengers], do_round=1),
+                "service_time": dist(all_service_times, do_round=0),
                 "total_distance": [el.total_distance for el in self.el],
             },
             "passengers": {
@@ -736,21 +931,22 @@ class Simulator:
                 ]
             },
             "info": {
-                # 乘客等待時間的統計分佈
-                "waiting_time": dist([ps.t1 - ps.t0 for ps in self.completed_passengers], do_round=1),
-                # 乘客在等待時間的總和
-                "total_waiting_time": sum([ps.t1 - ps.t0 for ps in self.completed_passengers]),
-                # 乘客在電梯內的時間的總和
-                "total_inside_time": sum([ps.t2 - ps.t1 for ps in self.completed_passengers]),
-                # 乘客在電梯內的時間的統計分佈
-                "inside_time":  dist([ps.t2 - ps.t1 for ps in self.completed_passengers], do_round=1),
-                
+                # 所有乘客等待時間的統計分佈 (包括waiting, moving, completed)
+                "waiting_time": dist(all_waiting_times, do_round=0),
+                # 所有乘客等待時間的總和
+                "total_waiting_time": sum(all_waiting_times),
+                # 所有相關乘客在電梯內時間的總和 (moving + completed)
+                "total_inside_time": sum(all_inside_times),
+                # 所有相關乘客在電梯內時間的統計分佈
+                "inside_time": dist(all_inside_times, do_round=0),
                 # 電梯開門的次數
                 "total_opens": [el.total_opens for el in self.el],
                 # 電梯沒有開門的次數
                 "moves_without_open": self.moves_without_open,
                 # 電梯的剩餘任務數
-                "remaining_missions": [len(el.missions) for el in self.el]
+                "remaining_missions": [len(el.missions) for el in self.el],
+                # 按樓層分組的等待時間統計 (新增)
+                "floor_waiting_stats": floor_waiting_stats
             }
         }
 
@@ -767,10 +963,42 @@ class Simulator:
         f, axs = plt.subplots(2, 2)
         # service time
         ax = axs[0,0]
+
+        # return [len(x), np.mean(x), np.percentile(x, 0~100)]
         quants = tuple(range(0,101))
-        t_tot = dist([ps.t2 - ps.t0 for ps in self.completed_passengers], quants)
-        t_wait = dist([ps.t1 - ps.t0 for ps in self.completed_passengers], quants)
-        t_inside = dist([ps.t2 - ps.t1 for ps in self.completed_passengers], quants)
+        # 使用新的全包含計算方式，但需要重新計算以獲得百分位數據
+        # 計算所有乘客的等待時間和在電梯內時間
+        all_waiting_times = []
+        # 1. Completed passengers: t1 - t0
+        all_waiting_times.extend([ps.t1 - ps.t0 for ps in self.completed_passengers])
+        # 2. Moving passengers: t1 - t0
+        for ps_list in self.moving_passengers:
+            all_waiting_times.extend([ps.t1 - ps.t0 for ps in ps_list])
+        # 3. Waiting passengers: sim_time - t0 (假設現在進入電梯)
+        all_waiting_times.extend([self.sim_time - ps.t0 for ps in self.waiting_passengers])
+        
+        all_inside_times = []
+        # 1. Completed passengers: t2 - t1
+        all_inside_times.extend([ps.t2 - ps.t1 for ps in self.completed_passengers])
+        # 2. Moving passengers: sim_time - t1 (假設現在離開電梯)
+        for ps_list in self.moving_passengers:
+            all_inside_times.extend([self.sim_time - ps.t1 for ps in ps_list])
+            
+        all_service_times = []
+        # 1. Completed passengers: t2 - t0
+        all_service_times.extend([ps.t2 - ps.t0 for ps in self.completed_passengers])
+        # 2. Moving passengers: sim_time - t0
+        for ps_list in self.moving_passengers:
+            all_service_times.extend([self.sim_time - ps.t0 for ps in ps_list])
+        # 3. Waiting passengers: sim_time - t0
+        all_service_times.extend([self.sim_time - ps.t0 for ps in self.waiting_passengers])
+        
+        # 計算分布數據用於繪圖
+        t_tot = dist(all_service_times, quants) if all_service_times else [0, 0] + [0]*len(quants)
+        t_wait = dist(all_waiting_times, quants) if all_waiting_times else [0, 0] + [0]*len(quants)
+        t_inside = dist(all_inside_times, quants) if all_inside_times else [0, 0] + [0]*len(quants)
+
+        # 繪製總等待時間、外部等待時間和內部等待時間的分布曲線
         ax.plot(quants, t_tot[2:], 'k-')
         ax.plot(quants, t_wait[2:], 'm-')
         ax.plot(quants, t_inside[2:], 'y-')
@@ -782,7 +1010,7 @@ class Simulator:
         ax.legend(("Total", "Outside", "Inside"))
         ax.set_xlabel('Quantile [%]')
         ax.set_ylabel('Time [s]')
-        ax.set_title('Service Time Distribution (for fully-served passengers)')
+        ax.set_title('Service Time Distribution (for ALL passengers)')
         # passengers
         ax = axs[0,1]
         s = S['passengers']
