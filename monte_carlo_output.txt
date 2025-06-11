@@ -1,0 +1,298 @@
+Using floor-specific arrival rates:
+  Floor 0: 0.002 arrivals/sec
+  Floor 1: 0.176 arrivals/sec
+  Floor 2: 0.016 arrivals/sec
+  Floor 3: 0.023 arrivals/sec
+  Floor 4: 0.014 arrivals/sec
+  Floor 5: 0.006 arrivals/sec
+  Floor 6: 0.013 arrivals/sec
+  Floor 7: 0.009 arrivals/sec
+  Floor 8: 0.007 arrivals/sec
+  Floor 9: 0.008 arrivals/sec
+  Floor 10: 0.006 arrivals/sec
+  Floor 11: 0.002 arrivals/sec
+  Floor 12: 0.005 arrivals/sec
+
+=== 乘客流量分析 ===
+場景總乘客數: 184
+模擬時長: 10 分鐘
+正在生成乘客流量熱力圖...
+Heatmap saved to: images/passenger_flow_heatmap.png
+正在生成每分鐘抵達人數直方圖...
+Histogram saved to: arrivals_per_minute_histogram.png
+
+=== Detailed Statistics ===
+
+Floor traffic statistics:
+ B1: Departing   1, Arriving  11, Net flow  +10
+ 1F: Departing 116, Arriving  35, Net flow  -81
+ 2F: Departing  12, Arriving   6, Net flow   -6
+ 3F: Departing  14, Arriving  13, Net flow   -1
+ 4F: Departing   6, Arriving  19, Net flow  +13
+ 5F: Departing   2, Arriving   7, Net flow   +5
+ 6F: Departing  10, Arriving  15, Net flow   +5
+ 7F: Departing   5, Arriving  16, Net flow  +11
+ 8F: Departing   7, Arriving   9, Net flow   +2
+ 9F: Departing   6, Arriving  12, Net flow   +6
+10F: Departing   3, Arriving  14, Net flow  +11
+11F: Departing   0, Arriving  16, Net flow  +16
+12F: Departing   2, Arriving  11, Net flow   +9
+
+Time distribution statistics:
+Average arrivals per minute: 18.4
+Busiest minute: 24
+Quietest minute: 13
+Standard deviation: 3.1
+
+圖表已保存:
+- passenger_flow_heatmap.png (乘客流量熱力圖)
+- arrivals_per_minute_histogram.png (每分鐘抵達人數直方圖)
+
+
+SIMULATION BEGAN
+
+
+SIMULATION FINISHED
+
+
+Passenger status at simulation end:
+  Waiting: 83 passengers
+  Inside elevators: 17 passengers
+  Served: 84 passengers
+  Total arrivals: 184 passengers
+
+=== Floor-by-Floor Waiting Time Variability Analysis ===
+Floor  Count  Mean     Std      CV         Min      Max      Median  
+----------------------------------------------------------------------
+B1     2      73.0     73.0     1.000      0.0      146.1    73.0    
+1F     113    99.0     98.0     0.990      0.0      565.4    69.1    
+2F     12     336.1    152.7    0.454      145.0    592.1    316.3   
+3F     16     251.9    190.2    0.755      61.3     584.0    153.3   
+4F     4      71.5     48.0     0.672      0.0      127.3    79.3    
+5F     2      98.6     36.5     0.370      62.2     135.1    98.6    
+6F     10     209.2    123.4    0.590      52.3     411.1    148.4   
+7F     5      177.6    172.6    0.972      41.0     513.4    123.3   
+8F     7      85.3     32.8     0.385      11.6     115.0    96.5    
+9F     3      165.2    5.5      0.033      161.3    173.0    161.3   
+10F    5      143.2    117.5    0.821      0.6      277.8    182.5   
+11F    1      228.9    0.0      0.000      228.9    228.9    228.9   
+12F    4      170.6    69.1     0.405      79.8     273.6    164.6   
+
+Variability Analysis:
+Floor with highest std dev: 3F (std dev: 190.2s)
+Floor with lowest std dev: 11F (std dev: 0.0s)
+Floor with highest CV: 0F (CV: 1.000)
+
+=== Simulation Results Analysis (All Passengers) ===
+Total passengers: 184
+Service completed: 84
+In elevator: 17
+Waiting: 83
+
+Passenger distribution by floor:
+  B1: 2 passengers (Completed:2, In elevator:0, Waiting:0)
+  1F: 113 passengers (Completed:56, In elevator:7, Waiting:50)
+  2F: 12 passengers (Completed:2, In elevator:0, Waiting:10)
+  3F: 16 passengers (Completed:5, In elevator:1, Waiting:10)
+  4F: 4 passengers (Completed:3, In elevator:1, Waiting:0)
+  5F: 2 passengers (Completed:0, In elevator:0, Waiting:2)
+  6F: 10 passengers (Completed:3, In elevator:2, Waiting:5)
+  7F: 5 passengers (Completed:3, In elevator:0, Waiting:2)
+  8F: 7 passengers (Completed:4, In elevator:0, Waiting:3)
+  9F: 3 passengers (Completed:1, In elevator:2, Waiting:0)
+  10F: 5 passengers (Completed:2, In elevator:2, Waiting:1)
+  11F: 1 passengers (Completed:1, In elevator:0, Waiting:0)
+  12F: 4 passengers (Completed:2, In elevator:2, Waiting:0)
+Generating waiting time and in-elevator time box plots (All passengers)...
+Box plots (all passengers) saved to: images/data_60_at_six_floor_0_waiting_inside_time_boxplot_all_passengers.png
+Generating floor waiting time comparison plot (All passengers)...
+Floor waiting time comparison plot (all passengers) saved to: images/data_60_at_six_floor_0_floor_waiting_time_comparison_all_passengers.png
+
+Analysis plots saved:
+- images/waiting_inside_time_boxplot_all_passengers.png (Waiting time and in-elevator time box plots - All passengers)
+- images/floor_waiting_time_comparison_all_passengers.png (Floor waiting time comparison plot - All passengers)
+
+Note: This analysis includes all arriving passengers, including those still waiting or using elevators at the end of simulation.
+
+=== Elevator system performance statistics ===
+Served passengers: 84
+Total waiting time: 25580.93s
+Total service time: 10148.28s
+Average waiting time: 139.03s
+Average service time: 100.48s
+
+Waiting time distribution: 
+min: 0.0
+median: 5.000000000000002
+max: 311.1364956522584
+
+Inside time distribution: 
+min: 6.73318029677039
+median: 16.46421170071619
+max: 212.37427010921982
+
+Service time distribution: 
+min: 1.6062897291117224
+median: 43.49485176237965
+max: 387.7124897617042
+
+Average time in the system time: 194.18s
+Verification: 194.18 ≈ 139.03 + 100.48 = 239.50
+Using floor-specific arrival rates:
+  Floor 0: 0.002 arrivals/sec
+  Floor 1: 0.176 arrivals/sec
+  Floor 2: 0.016 arrivals/sec
+  Floor 3: 0.023 arrivals/sec
+  Floor 4: 0.014 arrivals/sec
+  Floor 5: 0.006 arrivals/sec
+  Floor 6: 0.013 arrivals/sec
+  Floor 7: 0.009 arrivals/sec
+  Floor 8: 0.007 arrivals/sec
+  Floor 9: 0.008 arrivals/sec
+  Floor 10: 0.006 arrivals/sec
+  Floor 11: 0.002 arrivals/sec
+  Floor 12: 0.005 arrivals/sec
+
+=== 乘客流量分析 ===
+場景總乘客數: 189
+模擬時長: 10 分鐘
+正在生成乘客流量熱力圖...
+Heatmap saved to: images/passenger_flow_heatmap.png
+正在生成每分鐘抵達人數直方圖...
+Histogram saved to: arrivals_per_minute_histogram.png
+
+=== Detailed Statistics ===
+
+Floor traffic statistics:
+ B1: Departing   1, Arriving   9, Net flow   +8
+ 1F: Departing 122, Arriving  30, Net flow  -92
+ 2F: Departing  12, Arriving  12, Net flow   +0
+ 3F: Departing  13, Arriving  17, Net flow   +4
+ 4F: Departing  14, Arriving  11, Net flow   -3
+ 5F: Departing   8, Arriving   8, Net flow   +0
+ 6F: Departing   6, Arriving  20, Net flow  +14
+ 7F: Departing   2, Arriving  16, Net flow  +14
+ 8F: Departing   5, Arriving  14, Net flow   +9
+ 9F: Departing   3, Arriving  14, Net flow  +11
+10F: Departing   1, Arriving  17, Net flow  +16
+11F: Departing   0, Arriving   8, Net flow   +8
+12F: Departing   2, Arriving  13, Net flow  +11
+
+Time distribution statistics:
+Average arrivals per minute: 18.9
+Busiest minute: 24
+Quietest minute: 12
+Standard deviation: 3.1
+
+圖表已保存:
+- passenger_flow_heatmap.png (乘客流量熱力圖)
+- arrivals_per_minute_histogram.png (每分鐘抵達人數直方圖)
+
+
+SIMULATION BEGAN
+
+
+SIMULATION FINISHED
+
+
+Passenger status at simulation end:
+  Waiting: 77 passengers
+  Inside elevators: 17 passengers
+  Served: 95 passengers
+  Total arrivals: 189 passengers
+
+=== Floor-by-Floor Waiting Time Variability Analysis ===
+Floor  Count  Mean     Std      CV         Min      Max      Median  
+----------------------------------------------------------------------
+B1     1      84.4     0.0      0.000      84.4     84.4     84.4    
+1F     116    124.1    101.1    0.815      0.0      502.6    101.6   
+2F     12     209.6    142.3    0.679      1.0      457.0    180.2   
+3F     13     83.9     103.4    1.233      0.0      413.9    41.6    
+4F     15     86.4     130.4    1.509      0.0      519.3    23.2    
+5F     11     94.1     143.9    1.529      0.0      530.2    57.4    
+6F     7      307.4    182.4    0.593      98.3     560.8    178.8   
+7F     2      48.4     25.6     0.529      22.8     74.0     48.4    
+8F     5      338.1    91.8     0.271      220.6    478.5    331.0   
+9F     3      455.7    50.1     0.110      395.2    517.8    454.1   
+10F    1      329.0    0.0      0.000      329.0    329.0    329.0   
+12F    3      454.3    49.0     0.108      419.7    523.7    419.7   
+
+Variability Analysis:
+Floor with highest std dev: 6F (std dev: 182.4s)
+Floor with lowest std dev: 0F (std dev: 0.0s)
+Floor with highest CV: 5F (CV: 1.529)
+
+=== Simulation Results Analysis (All Passengers) ===
+Total passengers: 189
+Service completed: 95
+In elevator: 17
+Waiting: 77
+
+Passenger distribution by floor:
+  B1: 1 passengers (Completed:1, In elevator:0, Waiting:0)
+  1F: 116 passengers (Completed:60, In elevator:10, Waiting:46)
+  2F: 12 passengers (Completed:0, In elevator:0, Waiting:12)
+  3F: 13 passengers (Completed:12, In elevator:0, Waiting:1)
+  4F: 15 passengers (Completed:14, In elevator:0, Waiting:1)
+  5F: 11 passengers (Completed:4, In elevator:7, Waiting:0)
+  6F: 7 passengers (Completed:2, In elevator:0, Waiting:5)
+  7F: 2 passengers (Completed:2, In elevator:0, Waiting:0)
+  8F: 5 passengers (Completed:0, In elevator:0, Waiting:5)
+  9F: 3 passengers (Completed:0, In elevator:0, Waiting:3)
+  10F: 1 passengers (Completed:0, In elevator:0, Waiting:1)
+  12F: 3 passengers (Completed:0, In elevator:0, Waiting:3)
+Generating waiting time and in-elevator time box plots (All passengers)...
+Box plots (all passengers) saved to: images/data_60_at_six_floor_1_waiting_inside_time_boxplot_all_passengers.png
+Generating floor waiting time comparison plot (All passengers)...
+Traceback (most recent call last):
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/dev.py", line 286, in <module>
+    summary, all_passengers_data = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+1, prefix=f"data_60_at_six_floor_{i}")
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/dev.py", line 139, in run_elevator_simulation
+    summary, all_passengers_data = x.run_simulation(prefix=prefix)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/ElevatorSimulator.py", line 395, in run_simulation
+    plotter.generate_simulation_analysis_all_passengers(
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/AnalysisPlotter.py", line 772, in generate_simulation_analysis_all_passengers
+    self.plot_floor_waiting_time_comparison_all_passengers(all_passengers_data, floor_comparison_path, show_plots)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/AnalysisPlotter.py", line 585, in plot_floor_waiting_time_comparison_all_passengers
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/pyplot.py", line 1251, in savefig
+    res = fig.savefig(*args, **kwargs)  # type: ignore[func-returns-value]
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/figure.py", line 3490, in savefig
+    self.canvas.print_figure(fname, **kwargs)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/backend_bases.py", line 2155, in print_figure
+    self.figure.draw(renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/artist.py", line 94, in draw_wrapper
+    result = draw(artist, renderer, *args, **kwargs)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/artist.py", line 71, in draw_wrapper
+    return draw(artist, renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/figure.py", line 3257, in draw
+    mimage._draw_list_compositing_images(
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/image.py", line 134, in _draw_list_compositing_images
+    a.draw(renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/artist.py", line 71, in draw_wrapper
+    return draw(artist, renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/axes/_base.py", line 3216, in draw
+    mimage._draw_list_compositing_images(
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/image.py", line 134, in _draw_list_compositing_images
+    a.draw(renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/artist.py", line 71, in draw_wrapper
+    return draw(artist, renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/axis.py", line 1411, in draw
+    self._update_label_position(renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/axis.py", line 2448, in _update_label_position
+    bboxes, bboxes2 = self._get_tick_boxes_siblings(renderer=renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/axis.py", line 2241, in _get_tick_boxes_siblings
+    tlb, tlb2 = axis._get_ticklabel_bboxes(ticks_to_draw, renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/axis.py", line 1332, in _get_ticklabel_bboxes
+    return ([tick.label1.get_window_extent(renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/axis.py", line 1332, in <listcomp>
+    return ([tick.label1.get_window_extent(renderer)
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/text.py", line 971, in get_window_extent
+    x, y = self.get_transform().transform((x, y))
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/transforms.py", line 1495, in transform
+    res = self.transform_affine(self.transform_non_affine(values))
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/transforms.py", line 2414, in transform_non_affine
+    if self._a.is_affine and self._b.is_affine:
+  File "/Users/hank.tsai/Desktop/hank_tsai/Elevator/venv/lib/python3.10/site-packages/matplotlib/transforms.py", line 2208, in <lambda>
+    is_affine = property(lambda self: self._x.is_affine and self._y.is_affine)
+KeyboardInterrupt

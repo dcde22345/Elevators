@@ -370,7 +370,7 @@ class Simulator:
                 # Go down  
                 return int(floor * np.random.rand())
 
-    def run_simulation(self):
+    def run_simulation(self, prefix):
         self.sim_initialize()
         end_sim = False
         while not end_sim:
@@ -392,8 +392,9 @@ class Simulator:
             }
             
             # 生成模擬結果分析（包含所有乘客）
-            plotter.generate_simulation_analysis_all_passengers(
+            quartile_stats=plotter.generate_simulation_analysis_all_passengers(
                 all_passengers_data,
+                prefix=prefix,
                 save_plots=True,
                 show_plots=False
             )
@@ -403,7 +404,7 @@ class Simulator:
         except Exception as e:
             print(f"\n警告: 模擬結果分析失敗: {str(e)}")
         
-        return end_sim
+        return end_sim, all_passengers_data, quartile_stats
 
     def sim_initialize(self):
         if self.verbose: print("\n\nSIMULATION BEGAN\n")

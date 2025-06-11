@@ -126,7 +126,7 @@ class AnalysisPlotter:
                 plt.show()
             else:
                 plt.close()  # Close plot to save memory
-                
+    
     def plot_arrivals_per_minute_histogram(self, arrivals_per_minute, save_path=None, show_plot=None):
         """
         Plot histogram of passenger arrivals per minute
@@ -531,6 +531,8 @@ class AnalysisPlotter:
             moving_counts = []
             waiting_counts = []
             
+            # Calculate quartiles for each floor
+            quartile_stats = {}
             for floor in floors:
                 times = floor_waiting_times[floor]
                 counts = floor_passenger_counts[floor]
@@ -541,12 +543,27 @@ class AnalysisPlotter:
                     completed_counts.append(counts['completed'])
                     moving_counts.append(counts['moving'])
                     waiting_counts.append(counts['waiting'])
+                    
+                    # Calculate quartiles
+                    q1, q2, q3 = np.percentile(times, [25, 50, 75])
+                    quartile_stats[floor] = {
+                        'Q1': q1,
+                        'Q2': q2,  # median
+                        'Q3': q3,
+                        'IQR': q3 - q1
+                    }
                 else:
                     avg_waiting_times.append(0)
                     total_passenger_counts.append(0)
                     completed_counts.append(0)
                     moving_counts.append(0)
                     waiting_counts.append(0)
+                    quartile_stats[floor] = {
+                        'Q1': 0,
+                        'Q2': 0,
+                        'Q3': 0,
+                        'IQR': 0
+                    }
             
             # Create stacked bar chart showing passenger counts by status
             width = 0.6
@@ -563,17 +580,23 @@ class AnalysisPlotter:
             ax2.grid(True, alpha=0.3)
             ax2.tick_params(axis='x', rotation=45)
             
-            # Add detailed statistics table
+            # Add detailed statistics table including quartiles
             stats_text = "Floor Statistics (All Passengers):\n"
-            total_all = 0
-            total_completed = 0
-            total_moving = 0
-            total_waiting = 0
+            total_all = sum(total_passenger_counts)
+            total_completed = sum(completed_counts)
+            total_moving = sum(moving_counts)
+            total_waiting = sum(waiting_counts)
             
             stats_text += f"\nTotal: {total_all} pax\n"
             stats_text += f"Completed: {total_completed} pax\n"
             stats_text += f"In Elevator: {total_moving} pax\n"
-            stats_text += f"Waiting: {total_waiting} pax"
+            stats_text += f"Waiting: {total_waiting} pax\n\n"
+            
+            stats_text += "Waiting Time Quartiles (seconds):\n"
+            for floor in floors:
+                floor_name = self.floor_names[floor]
+                q = quartile_stats[floor]
+                stats_text += f"{floor_name}: Q1={q['Q1']:.1f}, Q2={q['Q2']:.1f}, Q3={q['Q3']:.1f}, IQR={q['IQR']:.1f}\n"
             
             ax2.text(1.02, 0.98, stats_text, transform=ax2.transAxes,
                     verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
@@ -589,6 +612,8 @@ class AnalysisPlotter:
                 plt.show()
             else:
                 plt.close()
+
+            return quartile_stats
 
     def plot_waiting_inside_time_boxplot_all_passengers(self, all_passengers_data, save_path=None, show_plot=None):
         """
@@ -657,6 +682,19 @@ class AnalysisPlotter:
                 print("No passenger data available for analysis")
                 return
             
+            # Calculate quartiles for each time category
+            wait_q1, wait_q2, wait_q3 = np.percentile(all_waiting_times, [25, 50, 75])
+            wait_iqr = wait_q3 - wait_q1
+            
+            inside_quartiles = None
+            if all_inside_times:
+                inside_q1, inside_q2, inside_q3 = np.percentile(all_inside_times, [25, 50, 75])
+                inside_iqr = inside_q3 - inside_q1
+                inside_quartiles = {'Q1': inside_q1, 'Q2': inside_q2, 'Q3': inside_q3, 'IQR': inside_iqr}
+            
+            service_q1, service_q2, service_q3 = np.percentile(all_service_times, [25, 50, 75])
+            service_iqr = service_q3 - service_q1
+            
             fig, axes = plt.subplots(1, 3, figsize=(18, 6))
             
             # Waiting time box plot
@@ -666,8 +704,14 @@ class AnalysisPlotter:
             axes[0].set_ylabel('Time (seconds)', fontsize=12)
             axes[0].grid(True, alpha=0.3)
             
-            # Add statistics
-            wait_stats = f'n: {len(all_waiting_times)}\nMean: {np.mean(all_waiting_times):.1f}s\nMedian: {np.median(all_waiting_times):.1f}s\nStd: {np.std(all_waiting_times):.1f}s'
+            # Add statistics including quartiles
+            wait_stats = (f'n: {len(all_waiting_times)}\n'
+                         f'Mean: {np.mean(all_waiting_times):.1f}s\n'
+                         f'Median: {np.median(all_waiting_times):.1f}s\n'
+                         f'Std: {np.std(all_waiting_times):.1f}s\n'
+                         f'Q1: {wait_q1:.1f}s\n'
+                         f'Q3: {wait_q3:.1f}s\n'
+                         f'IQR: {wait_iqr:.1f}s')
             axes[0].text(0.02, 0.98, wait_stats, transform=axes[0].transAxes, 
                         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
             
@@ -679,8 +723,14 @@ class AnalysisPlotter:
                 axes[1].set_ylabel('Time (seconds)', fontsize=12)
                 axes[1].grid(True, alpha=0.3)
                 
-                # Add statistics
-                inside_stats = f'n: {len(all_inside_times)}\nMean: {np.mean(all_inside_times):.1f}s\nMedian: {np.median(all_inside_times):.1f}s\nStd: {np.std(all_inside_times):.1f}s'
+                # Add statistics including quartiles
+                inside_stats = (f'n: {len(all_inside_times)}\n'
+                              f'Mean: {np.mean(all_inside_times):.1f}s\n'
+                              f'Median: {np.median(all_inside_times):.1f}s\n'
+                              f'Std: {np.std(all_inside_times):.1f}s\n'
+                              f'Q1: {inside_q1:.1f}s\n'
+                              f'Q3: {inside_q3:.1f}s\n'
+                              f'IQR: {inside_iqr:.1f}s')
                 axes[1].text(0.02, 0.98, inside_stats, transform=axes[1].transAxes,
                             verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
             else:
@@ -695,8 +745,14 @@ class AnalysisPlotter:
             axes[2].set_ylabel('Time (seconds)', fontsize=12)
             axes[2].grid(True, alpha=0.3)
             
-            # Add statistics
-            service_stats = f'n: {len(all_service_times)}\nMean: {np.mean(all_service_times):.1f}s\nMedian: {np.median(all_service_times):.1f}s\nStd: {np.std(all_service_times):.1f}s'
+            # Add statistics including quartiles
+            service_stats = (f'n: {len(all_service_times)}\n'
+                           f'Mean: {np.mean(all_service_times):.1f}s\n'
+                           f'Median: {np.median(all_service_times):.1f}s\n'
+                           f'Std: {np.std(all_service_times):.1f}s\n'
+                           f'Q1: {service_q1:.1f}s\n'
+                           f'Q3: {service_q3:.1f}s\n'
+                           f'IQR: {service_iqr:.1f}s')
             axes[2].text(0.02, 0.98, service_stats, transform=axes[2].transAxes,
                         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
             
@@ -712,7 +768,14 @@ class AnalysisPlotter:
             else:
                 plt.close()
 
-    def generate_simulation_analysis_all_passengers(self, all_passengers_data, save_plots=False, show_plots=None):
+            return {
+                'q1': wait_q1,
+                'q2': wait_q2,
+                'q3': wait_q3,
+                'iqr': wait_iqr,
+            }
+
+    def generate_simulation_analysis_all_passengers(self, all_passengers_data, prefix, save_plots=False, show_plots=None):
         """
         Generate complete simulation analysis report (including all passengers)
         
@@ -763,13 +826,13 @@ class AnalysisPlotter:
         
         # Generate box plots for all passengers
         print("Generating waiting time and in-elevator time box plots (All passengers)...")
-        boxplot_path = "images/waiting_inside_time_boxplot_all_passengers.png" if save_plots else None
-        self.plot_waiting_inside_time_boxplot_all_passengers(all_passengers_data, boxplot_path, show_plots)
-        
+        boxplot_path = f"images/{prefix}_waiting_inside_time_boxplot_all_passengers.png" if save_plots else None
+        total_quartile_stats = self.plot_waiting_inside_time_boxplot_all_passengers(all_passengers_data, boxplot_path, show_plots)
+
         # Generate floor waiting time comparison plot for all passengers
         print("Generating floor waiting time comparison plot (All passengers)...")
-        floor_comparison_path = "images/floor_waiting_time_comparison_all_passengers.png" if save_plots else None
-        self.plot_floor_waiting_time_comparison_all_passengers(all_passengers_data, floor_comparison_path, show_plots)
+        floor_comparison_path = f"images/{prefix}_floor_waiting_time_comparison_all_passengers.png" if save_plots else None
+        floor_quartile_stats = self.plot_floor_waiting_time_comparison_all_passengers(all_passengers_data, floor_comparison_path, show_plots)
         
         if save_plots:
             print("\nAnalysis plots saved:")
@@ -777,3 +840,8 @@ class AnalysisPlotter:
             print("- images/floor_waiting_time_comparison_all_passengers.png (Floor waiting time comparison plot - All passengers)")
         
         print(f"\nNote: This analysis includes all arriving passengers, including those still waiting or using elevators at the end of simulation.")
+
+        return {
+            'total': total_quartile_stats,
+            'floor': floor_quartile_stats
+        }
