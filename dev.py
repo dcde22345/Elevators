@@ -315,11 +315,11 @@ if __name__ == "__main__":
     for i in range(3):  # 改为3次展示蒙特卡罗效果
 
         # -----------------------limitations-----------------------
-        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_{i}")
-        limit_summary.append(summary)
-        limit_all_passengers_data.append(all_passengers_data)
-        limit_floor_quartile_stats.append(quartile_stats['floor'])
-        limit_total_quartile_stats.append(quartile_stats['total'])
+        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_{i}")
+        # limit_summary.append(summary)
+        # limit_all_passengers_data.append(all_passengers_data)
+        # limit_floor_quartile_stats.append(quartile_stats['floor'])
+        # limit_total_quartile_stats.append(quartile_stats['total'])
         
         summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_60_at_six_floor_{i}")
         limit_data_60_at_six_floor_summary.append(summary)
@@ -327,48 +327,48 @@ if __name__ == "__main__":
         limit_data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
         limit_data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
         
-        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_120_at_six_floor_{i}")
-        limit_data_120_at_six_floor_summary.append(summary)
-        limit_data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
-        limit_data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        limit_data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_120_at_six_floor_{i}")
+        # limit_data_120_at_six_floor_summary.append(summary)
+        # limit_data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # limit_data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # limit_data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
 
-        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_180_at_six_floor_{i}")
-        limit_data_180_at_six_floor_summary.append(summary)
-        limit_data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
-        limit_data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        limit_data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_180_at_six_floor_{i}")
+        # limit_data_180_at_six_floor_summary.append(summary)
+        # limit_data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # limit_data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # limit_data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
 
-        # -----------------------no limitations-----------------------
-        summary, all_passengers_data, quartile_stats = run_elevator_simulation(new_data, sim_pace=None, manager=Look, limitations=None, seed=i+1, prefix=f"no_limit_{i}")
-        no_limit_summary.append(summary)
-        no_limit_all_passengers_data.append(all_passengers_data)
-        no_limit_floor_quartile_stats.append(quartile_stats['floor'])
-        no_limit_total_quartile_stats.append(quartile_stats['total'])
+        # # -----------------------no limitations-----------------------
+        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(new_data, sim_pace=None, manager=Look, limitations=None, seed=i+1, prefix=f"no_limit_{i}")
+        # no_limit_summary.append(summary)
+        # no_limit_all_passengers_data.append(all_passengers_data)
+        # no_limit_floor_quartile_stats.append(quartile_stats['floor'])
+        # no_limit_total_quartile_stats.append(quartile_stats['total'])
         
-        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_60_at_six_floor_{i}")
-        data_60_at_six_floor_summary.append(summary)
-        data_60_at_six_floor_all_passengers_data.append(all_passengers_data)
-        data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_60_at_six_floor_{i}")
+        # data_60_at_six_floor_summary.append(summary)
+        # data_60_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
         
-        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_120_at_six_floor_{i}")
-        data_120_at_six_floor_summary.append(summary)
-        data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
-        data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_120_at_six_floor_{i}")
+        # data_120_at_six_floor_summary.append(summary)
+        # data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
 
-        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_180_at_six_floor_{i}")
-        data_180_at_six_floor_summary.append(summary)
-        data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
-        data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_180_at_six_floor_{i}")
+        # data_180_at_six_floor_summary.append(summary)
+        # data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
 
 
 
     # ================================================================================================================
     # 在所有模拟完成后，计算蒙特卡罗平均值
-    data_60_results = calculate_monte_carlo_averages(data_60_at_six_floor_summary, data_60_at_six_floor_all_passengers_data, "60_at_six_floor")
+    data_60_results = calculate_monte_carlo_averages(limit_data_60_at_six_floor_summary, limit_data_60_at_six_floor_all_passengers_data, "60_at_six_floor")
     # data_120_results = calculate_monte_carlo_averages(data_120_at_six_floor_summary, data_120_at_six_floor_all_passengers_data, "120_at_six_floor") 
     # data_180_results = calculate_monte_carlo_averages(data_180_at_six_floor_summary, data_180_at_six_floor_all_passengers_data, "180_at_six_floor")
     # limit_results = calculate_monte_carlo_averages(limit_summary, limit_all_passengers_data, "with_limitations")
@@ -380,10 +380,11 @@ if __name__ == "__main__":
     os.makedirs("quartile_stats", exist_ok=True)
     os.makedirs("quartile_stats/floor", exist_ok=True)
     os.makedirs("quartile_stats/total", exist_ok=True)
-    data_60_at_six_floor_floor_quartile_stats_df = pd.DataFrame(data_60_at_six_floor_floor_quartile_stats)
-    data_60_at_six_floor_total_quartile_stats_df = pd.DataFrame(data_60_at_six_floor_total_quartile_stats)
-    data_60_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/data_60_at_six_floor_floor_quartile_stats.csv", index=False)
-    data_60_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/data_60_at_six_floor_total_quartile_stats.csv", index=False)
+    limit_data_60_at_six_floor_floor_quartile_stats_df = pd.DataFrame(limit_data_60_at_six_floor_floor_quartile_stats)
+    limit_data_60_at_six_floor_total_quartile_stats_df = pd.DataFrame(limit_data_60_at_six_floor_total_quartile_stats)
+    limit_data_60_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_data_60_at_six_floor_floor_quartile_stats.csv", index=False)
+    limit_data_60_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/limit_data_60_at_six_floor_total_quartile_stats.csv", index=False)
+
 
     # data_120_at_six_floor_floor_quartile_stats_df = pd.DataFrame(data_120_at_six_floor_floor_quartile_stats)
     # data_120_at_six_floor_total_quartile_stats_df = pd.DataFrame(data_120_at_six_floor_total_quartile_stats)
