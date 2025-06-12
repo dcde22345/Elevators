@@ -137,7 +137,7 @@ if __name__ == "__main__":
             seed=seed
         )
 
-        x.generate_scenario()
+        x.generate_scenario(prefix=prefix)
         summary, all_passengers_data, quartile_stats = x.run_simulation(prefix=prefix)
         
         # 輸出統計結果
@@ -276,53 +276,94 @@ if __name__ == "__main__":
     data_60_at_six_floor_all_passengers_data = []
     data_60_at_six_floor_floor_quartile_stats = []
     data_60_at_six_floor_total_quartile_stats = []
+
+    limit_data_60_at_six_floor_summary = []
+    limit_data_60_at_six_floor_all_passengers_data = []
+    limit_data_60_at_six_floor_floor_quartile_stats = []
+    limit_data_60_at_six_floor_total_quartile_stats = []
+
     data_120_at_six_floor_summary = []
     data_120_at_six_floor_all_passengers_data = []
     data_120_at_six_floor_floor_quartile_stats = []
     data_120_at_six_floor_total_quartile_stats = []
+
+    limit_data_120_at_six_floor_summary = []
+    limit_data_120_at_six_floor_all_passengers_data = []
+    limit_data_120_at_six_floor_floor_quartile_stats = []
+    limit_data_120_at_six_floor_total_quartile_stats = []
+
     data_180_at_six_floor_summary = []
     data_180_at_six_floor_all_passengers_data = []
     data_180_at_six_floor_floor_quartile_stats = []
     data_180_at_six_floor_total_quartile_stats = []
+
+    limit_data_180_at_six_floor_summary = []
+    limit_data_180_at_six_floor_all_passengers_data = []
+    limit_data_180_at_six_floor_floor_quartile_stats = []
+    limit_data_180_at_six_floor_total_quartile_stats = []
+
     limit_summary = []
     limit_all_passengers_data = []
     limit_floor_quartile_stats = []
     limit_total_quartile_stats = []
+
     no_limit_summary = []
     no_limit_all_passengers_data = []
     no_limit_floor_quartile_stats = []
     no_limit_total_quartile_stats = []
 
-    for i in range(10):  # 改为3次展示蒙特卡罗效果
-        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+1, prefix=f"data_60_at_six_floor_{i}")
+    for i in range(3):  # 改为3次展示蒙特卡罗效果
+
+        # -----------------------limitations-----------------------
+        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_{i}")
+        limit_summary.append(summary)
+        limit_all_passengers_data.append(all_passengers_data)
+        limit_floor_quartile_stats.append(quartile_stats['floor'])
+        limit_total_quartile_stats.append(quartile_stats['total'])
+        
+        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_60_at_six_floor_{i}")
+        limit_data_60_at_six_floor_summary.append(summary)
+        limit_data_60_at_six_floor_all_passengers_data.append(all_passengers_data)
+        limit_data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        limit_data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        
+        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_120_at_six_floor_{i}")
+        limit_data_120_at_six_floor_summary.append(summary)
+        limit_data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
+        limit_data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        limit_data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+
+        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_180_at_six_floor_{i}")
+        limit_data_180_at_six_floor_summary.append(summary)
+        limit_data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
+        limit_data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        limit_data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+
+        # -----------------------no limitations-----------------------
+        summary, all_passengers_data, quartile_stats = run_elevator_simulation(new_data, sim_pace=None, manager=Look, limitations=None, seed=i+1, prefix=f"no_limit_{i}")
+        no_limit_summary.append(summary)
+        no_limit_all_passengers_data.append(all_passengers_data)
+        no_limit_floor_quartile_stats.append(quartile_stats['floor'])
+        no_limit_total_quartile_stats.append(quartile_stats['total'])
+        
+        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_60_at_six_floor_{i}")
         data_60_at_six_floor_summary.append(summary)
         data_60_at_six_floor_all_passengers_data.append(all_passengers_data)
         data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
         data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
         
-        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+1, prefix=f"data_120_at_six_floor_{i}")
-        # data_120_at_six_floor_summary.append(summary)
-        # data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
-        # data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        # data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_120_at_six_floor_{i}")
+        data_120_at_six_floor_summary.append(summary)
+        data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
+        data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
 
-        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+1, prefix=f"data_180_at_six_floor_{i}")
-        # data_180_at_six_floor_summary.append(summary)
-        # data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
-        # data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        # data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        summary, all_passengers_data, quartile_stats = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_180_at_six_floor_{i}")
+        data_180_at_six_floor_summary.append(summary)
+        data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
+        data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
 
-        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(data, sim_pace=None, manager=Look, limitations=limitations, seed=i+1, prefix=f"limit_{i}")
-        # limit_summary.append(summary)
-        # limit_all_passengers_data.append(all_passengers_data)
-        # limit_floor_quartile_stats.append(quartile_stats['floor'])
-        # limit_total_quartile_stats.append(quartile_stats['total'])
-
-        # summary, all_passengers_data, quartile_stats = run_elevator_simulation(new_data, sim_pace=None, manager=Look, limitations=None, seed=i+1, prefix=f"no_limit_{i}")
-        # no_limit_summary.append(summary)
-        # no_limit_all_passengers_data.append(all_passengers_data)
-        # no_limit_floor_quartile_stats.append(quartile_stats['floor'])
-        # no_limit_total_quartile_stats.append(quartile_stats['total'])
 
 
     # ================================================================================================================

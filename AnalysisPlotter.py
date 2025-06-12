@@ -78,7 +78,7 @@ class AnalysisPlotter:
         
         return flow_matrix, arrivals_per_minute
     
-    def plot_passenger_flow_heatmap(self, flow_matrix, save_path=None, show_plot=None):
+    def plot_passenger_flow_heatmap(self, flow_matrix, prefix, save_path=None, show_plot=None):
         """
         Plot passenger flow heatmap
         
@@ -119,15 +119,15 @@ class AnalysisPlotter:
             plt.tight_layout()
             
             if save_path:
-                plt.savefig(save_path, dpi=300, bbox_inches='tight')
-                print(f"Heatmap saved to: {save_path}")
+                plt.savefig(f"images/{prefix}_{save_path}", dpi=300, bbox_inches='tight')
+                print(f"Heatmap saved to: images/{prefix}_{save_path}")
             
             if show_plot:
                 plt.show()
             else:
                 plt.close()  # Close plot to save memory
     
-    def plot_arrivals_per_minute_histogram(self, arrivals_per_minute, save_path=None, show_plot=None):
+    def plot_arrivals_per_minute_histogram(self, arrivals_per_minute, prefix, save_path=None, show_plot=None):
         """
         Plot histogram of passenger arrivals per minute
         
@@ -180,7 +180,7 @@ class AnalysisPlotter:
             plt.tight_layout()
             
             if save_path:
-                plt.savefig(save_path, dpi=300, bbox_inches='tight')
+                plt.savefig(f"images/{prefix}_{save_path}", dpi=300, bbox_inches='tight')
                 print(f"Histogram saved to: {save_path}")
             
             if show_plot:
@@ -407,7 +407,7 @@ class AnalysisPlotter:
         print(f"\nNote: Waiting time analysis only shows completed passengers.")
         print(f"If a floor is not shown in the plots, it means passengers from that floor had not completed service when simulation ended.")
 
-    def generate_analysis_report(self, scenario, save_plots=False, show_plots=None):
+    def generate_analysis_report(self, scenario, prefix, save_plots=False, show_plots=None):
         """
         Generate complete analysis report including two plots
         
@@ -429,12 +429,12 @@ class AnalysisPlotter:
         print(f"Simulation duration: {max(arrivals_per_minute.keys()) + 1} minutes")
         
         # Generate heatmap
-        heatmap_path = "passenger_flow_heatmap.png" if save_plots else None
-        self.plot_passenger_flow_heatmap(flow_matrix, heatmap_path, show_plots)
+        heatmap_path = f"passenger_flow_heatmap.png" if save_plots else None
+        self.plot_passenger_flow_heatmap(flow_matrix, prefix, heatmap_path, show_plots)
         
         # Generate histogram
         histogram_path = "arrivals_per_minute_histogram.png" if save_plots else None
-        self.plot_arrivals_per_minute_histogram(arrivals_per_minute, histogram_path, show_plots)
+        self.plot_arrivals_per_minute_histogram(arrivals_per_minute, prefix, histogram_path, show_plots)
         
         # Print detailed statistics
         self._print_detailed_statistics(flow_matrix, arrivals_per_minute)

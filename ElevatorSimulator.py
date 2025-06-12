@@ -166,7 +166,7 @@ class Simulator:
                 valid_destinations.append(dest_floor)
         return valid_destinations
 
-    def generate_scenario(self, verbose=None):
+    def generate_scenario(self, prefix, verbose=None):
 
         if verbose is None: verbose = self.debug
         if self.seed is not None: np.random.seed(self.seed)
@@ -328,13 +328,15 @@ class Simulator:
                 print("正在生成乘客流量熱力圖...")
                 plotter.plot_passenger_flow_heatmap(
                     flow_matrix, 
-                    save_path="images/passenger_flow_heatmap.png",
+                    prefix=prefix,
+                    save_path="passenger_flow_heatmap.png",
                     show_plot=False
                 )
                 
                 print("正在生成每分鐘抵達人數直方圖...")
                 plotter.plot_arrivals_per_minute_histogram(
                     arrivals_per_minute, 
+                    prefix=prefix,
                     save_path="arrivals_per_minute_histogram.png",
                     show_plot=False
                 )
