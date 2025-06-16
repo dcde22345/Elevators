@@ -348,6 +348,8 @@ class Simulator:
                 print("- passenger_flow_heatmap.png (乘客流量熱力圖)")
                 print("- arrivals_per_minute_histogram.png (每分鐘抵達人數直方圖)")
                 
+                return arrivals_per_minute
+            
             except ImportError:
                 print("\n警告: 無法導入 AnalysisPlotter，跳過圖表生成")
             except Exception as e:
