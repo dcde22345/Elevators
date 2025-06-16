@@ -1,5 +1,5 @@
-from MyTools import *
-from ElevatorManager import NaiveManager
+from .MyTools import *
+from .ElevatorManager import NaiveManager
 import numpy as np
 from warnings import warn
 
@@ -10,7 +10,7 @@ class DDSManager(NaiveManager):
     - 同目的地或相近樓層的乘客盡量分配到同一台電梯
     - 分派後，該電梯的行程不再臨時加人，直到完成再重新分派
     """
-    
+
     # 電梯狀態
     UP = 1
     DOWN = -1
@@ -35,18 +35,18 @@ class DDSManager(NaiveManager):
     def handle_arrival(self, t, xi, xf):
         """
         新乘客到達時，加入等待池並觸發分派
-        
+
         parameters:
             t: 時間
             xi: 起始樓層
             xf: 目的地樓層
-        
+
         return:
             tasks: 所有電梯的任務
         """
         self.waiting_pool.append((t, xi, xf))
         self.dispatch_requests()
-        
+
         # 回傳所有電梯的任務
         tasks = {}
         for l in range(self.N):
@@ -121,4 +121,3 @@ class DDSManager(NaiveManager):
                 return {idx: tasks}
         # 沒有任務時，回傳空字典，讓電梯進入休息狀態
         return {}
-    

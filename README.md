@@ -1,117 +1,89 @@
 # Elevators Management: Visual Simulator and Optimization Algorithms
 
-This repo implements a visual simulator of elevators system, along with several simple optimization algorithms and analysis of their results.
+This project implements a visual simulator for an elevator system, including several optimization algorithms and an analysis of their results.
 
-Some of the results are demonstrated [here](https://github.com/ido90/Elevators/tree/master/Demonstrations), and some of them can be reproduced using [these](https://github.com/ido90/Elevators/tree/master/Main) scripts.
+## Project Structure
 
-A [Reinforcement-Learning manager](#module-reinforcementelevator) is intended to be implemented and tested vs. the classic [DirectManager](#implemented-managers).
+To make the project easier to maintain and expand, we have organized the directory structure as follows:
 
-## Implemented managers
+```
+.
+├── Raw_and_Cleaned_Data/  # Raw and cleaned data
+├── images/                  # Contains all analysis charts
+│   ├── monte_carlo/
+│   ├── no_limitations/
+│   ├── privileged_faculty/
+│   └── with_limitations/
+├── results/                 # Contains simulation result data (e.g., .csv)
+│   └── quartile_stats/
+├── scripts/                 # Scripts for running simulations and tests
+│   ├── dev.py               # Main development and simulation script
+│   └── test_dev.py          # Script for testing
+├── src/                     # All core source code
+│   ├── AnalysisPlotter.py
+│   ├── DDSAlgorithm.py
+│   ├── Elevator.py
+│   ├── ElevatorManager.py
+│   ├── ElevatorSimulator.py
+│   ├── ElevatorTester.py
+│   ├── LookAlgorithm.py
+│   ├── MyTools.py
+│   ├── Passenger.py
+│   ├── ReinforcementElevator.py
+│   └── SimulationPlotter.py
+└── README.md                # Project documentation
+```
 
-Note: all the currently-implemented managers are either naive or incomplete, and were mainly used for testing and demonstration of the simulative infrastructure, as well as future reference for more advanced algorithms.
+## Installation and Setup
 
-- **NaiveManager**: Use the first elevator to handle passengers arrivals sequentially.
-- **NaiveRoundRobin**: Use the elevators in turns to handle passengers arrivals.
-- **GreedyManager**: Try to disperse waiting elevators, and assign elevators to passengers greedily.
-- **DirectManager**: Go on while there're more passengers in the current motion direction, then turn around (variant of the classic elevator algorithm).
+A Python 3.x environment is recommended. You will need to install some dependencies. It is recommended to create a `requirements.txt` file with the following content:
 
-| ![](https://github.com/ido90/Elevators/blob/master/Demonstrations/tests%20summary.png) |
-| :--: |
-| Summary of the results of the various managers |
+```
+numpy
+matplotlib
+pandas
+prettytable
+seaborn
+```
 
-## Class: ElevatorSimulator.Simulator
+Then, install them using the following command:
+```bash
+pip install -r requirements.txt
+```
 
-This class implements a simulation of elevators which serve arriving passengers.
+## How to Run
 
-Involved classes:
-- Simulator       = simulation manager
-- ElevatorManager = decision makers
-- Elevator        = represent the elevators in the simulation
-- Arrival         = encode a single event of arrival of passengers
-- Passenger       = encode and track a single passenger
-- SimPlot         = visualize the simulation dynamically via matplotlib
+You can run the simulation by executing the scripts in the `scripts` folder. The main script is `dev.py`.
 
-Main flow:
+Run from the project root directory:
+```bash
+python scripts/dev.py
+```
+After execution, the latest simulation result charts will be saved in the corresponding subdirectories of `images/`, and the data will be stored in the `results/` folder.
 
-    generate_scenario()
-    run_simulation()
-        sim_initialize()
-            Manager.handle_initialization()
-            update_missions()
-        loop: handle_next_event()
-            update the state to the time of the next event: sim_update()
-            handle next event: handle_arrival() / end_mission() / sim_end()
-                Manager.handle_arrival() / Manager.handle_no_missions()
-                update_missions()
+## Implemented Elevator Algorithms
 
-| ![](https://idogreenberg.neocities.org/linked_images/elevators.JPG) |
-| :--: |
-| A screenshot from the visual simulation |
+This project implements several elevator dispatch algorithms as a basis for testing and comparison.
 
-## Module: ElevatorTester
+*   **NaiveManager**: A simple baseline algorithm that uses the first elevator to handle all passenger requests sequentially.
+*   **NaiveRoundRobin**: Assigns elevators in turn to handle passenger requests.
+*   **GreedyManager**: Attempts to disperse waiting elevators and assigns elevators to passengers greedily.
+*   **Look (DirectManager)**: A variant of the classic elevator algorithm where the elevator continues to move in its current direction as long as there are requests in that direction, before changing direction.
+*   **DDSManager**: Destination Dispatch System, where passengers input their destination when calling the elevator, allowing a central system to dispatch cars more efficiently.
 
-This module defines various scenarios, tests the managers of ElevatorManager using ElevatorSimulator, and summarizes the results.
+## Core Module Descriptions
 
-## Module: ElevatorManager
+*   `ElevatorSimulator`: The core of the simulator, responsible for managing the simulation flow, event handling, and state updates.
+*   `ElevatorManager`: The base class and implementation for various elevator management algorithms.
+*   `Elevator`: Represents a single elevator object, including its state and properties.
+*   `Passenger`: Represents a passenger object.
+*   `AnalysisPlotter`: Used for analyzing simulation data and generating various charts (e.g., passenger flow heatmaps, waiting time distribution plots).
+*   `SimulationPlotter`: Provides a real-time visualization interface using `matplotlib` to dynamically observe elevator operations.
 
-This module contains the elevator-managers (one class per manager).
+## Future Work and Outlook
 
-A manager handles 3 kinds of events:
-1. Initialization of elevators locations.
-2. Arrival of passengers.
-3. End of tasks of a certain elevator.
-
-A manager can assign tasks in the format {elevator_index : list_of_missions}
-where a single task is encoded as a 3D-tuple:
-- (n,True,-1)      = go to floor n and open.
-- (n,False,-1)     = go to floor n (without opening).
-- (n,True/False,k) = get in the middle of another mission - go to n and push it as the k'th task of the elevator.
-- (None,False,k)   = remove the current k'th mission of the elevator.
-
-In cases of new arrival, the output dict must also include: {-1 : elevator_assigned_to_arrival}.
-
-## Module: ReinforcementElevator
-
-This module is **NOT IMPLEMENTED**, up to definition of states and a simple count of them (or at least a lower-bound of the count), demonstrating that direct search in state-space (e.g. Value Iteration) is impractical for any interesting configuration.
-Instead, some encoding of the states should be used (e.g. like [here](https://papers.nips.cc/paper/1073-improving-elevator-performance-using-reinforcement-learning.pdf)).
-
-Implementation of this module should take care of the following issues:
-1. **Sampling resolution**: high-resolution (e.g. sample every time the elevators move one floor) permits simple state-space, but low-resolution (e.g. sample when an elevator reaches its destination, etc.) is better synced with the simulator interface.
-2. **State encoding**: compact encoding of the states so that a learner can use an encoded state to make a decision.
-3. **Train & test process**: train the decision-maker in various scenarios and test it.
-
-
-## To be continue
-1. **Elevator Chooser**: Need to fix chooser's dispatcher method
-2. **Presentation**:
-    - poisson distribution generation with timestamp
-    - model with only one elevator
-        - demo
-    - model with 4 elevator -> Look 演算法怪怪的，他不會正確pick up
-        - waiting time boxing plot
-        - waiting time accross time
-        - service time box plot
-        - service time accress time
-    - model with 4 elevator with limitation vs without limitation
-        - waiting time boxing plot
-        - waiting time accross time
-        - service time box plot
-        - service time accress time
-
-    - model with DDS algorithm
-        - waiting time boxing plot
-        - waiting time accross time
-        - service time box plot
-        - service time accress time
-        - 各樓層waiting time
-
-    - service level
-        - 體驗
-
-    - 動機
-    - 資料分析 -> 上課人數
-    - 資料搜集 -> 人流分析
-    - 假設
-    - Simulation
-    - 建議
-    - Exploration
+*   **Reinforcement Learning Algorithm**: The `ReinforcementElevator.py` module is currently a preliminary concept and has not been implemented. The future direction is to implement a reinforcement learning elevator controller and compare its performance with traditional algorithms. This will require addressing issues such as state space definition, sampling frequency, and model training.
+*   **User Interface**: Develop a more user-friendly graphical user interface (GUI) to allow users to more easily adjust parameters, select algorithms, and observe simulation results.
+*   **More Algorithms**: Implement more advanced elevator dispatch algorithms, such as OTIS's FPA (Fuzzy-logic-based Peak-shaving Algorithm).
+*   **Parameter Optimization**: Optimize the parameters of the algorithms for different traffic patterns (e.g., morning peak, evening peak, off-peak).
+*   **Detailed Documentation**: Write more complete documentation (Docstrings) for each module and function.

@@ -1,9 +1,9 @@
-from MyTools import *
-import ElevatorManager
-from Elevator import Elevator
-from Passenger import Arrival, Passenger
-from SimulationPlotter import SimPlotter
-from algorithm.LookAlgorithm import Look
+from .MyTools import *
+from . import ElevatorManager
+from .Elevator import Elevator
+from .Passenger import Arrival, Passenger
+from .SimulationPlotter import SimPlotter
+from .LookAlgorithm import Look
 import matplotlib.pyplot as plt
 import numpy as np
 import sys, pprint
@@ -71,7 +71,7 @@ class Simulator:
 
     def __init__(self, manager=ElevatorManager.NaiveManager, debug_mode=False, limitations=None, verbose=True,
                  sim_len=120, sim_pace=None, time_resolution=0.5, logfile=None, seed=1,
-                 n_floors=3, n_elevators=2, capacity=15, speed=1, open_time=2, 
+                 n_floors=3, n_elevators=2, capacity=15, speed=1, open_time=2,
                  arrival_pace=1/10, floor_arrival_rates=None, destination_probabilities=None, p_between=0.1, p_up=0.45, size=1.5, delay=3):
 
         # Note: default time unit is seconds.
@@ -103,7 +103,7 @@ class Simulator:
         el_open_time = open_time # = time to open = time to close
         # init
         self.el_next_event_time = [np.inf for _ in range(self.n_elevators)]
-        
+
         # if limitations is not None, use the limitations
         if limitations:
             self.el = [
@@ -127,10 +127,10 @@ class Simulator:
         else:
             # Use global arrival_pace for all floors if not specified
             self.floor_arrival_rates = None
-            
+
         # Store destination probabilities matrix
         self.destination_probabilities = destination_probabilities
-            
+
         self.p_go_between = p_between
         self.p_go_up = p_up
         self.p_go_down = 1 - (self.p_go_between + self.p_go_up)
@@ -172,24 +172,24 @@ class Simulator:
         if self.seed is not None: np.random.seed(self.seed)
 
         all_arrivals = []
-        
+
         if self.floor_arrival_rates is not None:
             # Use floor-specific arrival rates
             if self.verbose:
                 print("Using floor-specific arrival rates:")
                 for floor, rate in enumerate(self.floor_arrival_rates):
                     print(f"  Floor {floor}: {rate:.3f} arrivals/sec")
-            
+
             for floor in range(self.n_floors):
                 if self.floor_arrival_rates[floor] > 0:
                     # Generate arrivals for this specific floor
                     n_arrivals_floor = np.random.poisson(self.sim_len * self.floor_arrival_rates[floor])
-                    
+
                     if n_arrivals_floor > 0:
                         a_times = list(np.sort(self.sim_len * np.random.rand(n_arrivals_floor)))
                         a_sizes = list(np.floor(1+np.random.exponential(self.arrival_size-1, n_arrivals_floor)).astype(int))
                         a_delays = list(np.random.gamma(self.delay/8, 8, n_arrivals_floor))
-                        
+
                         # For floor-specific arrivals, set starting floor and determine destinations
                         for i in range(n_arrivals_floor):
                             # 首先檢查這個樓層是否有可達的目的地
@@ -197,7 +197,7 @@ class Simulator:
                             if not valid_destinations_for_floor:
                                 # 這個樓層沒有任何可達的目的地，跳過這個arrival
                                 continue
-                                
+
                             # Use destination probabilities if available
                             if self.destination_probabilities is not None:
                                 target_probs = self.destination_probabilities[floor]
@@ -212,7 +212,7 @@ class Simulator:
                                         if dest_floor != floor and prob > 0 and dest_floor in valid_destinations_for_floor:
                                             valid_destinations.append(dest_floor)
                                             valid_probs.append(prob)
-                                    
+
                                     if valid_destinations:
                                         # Renormalize after removing invalid destinations
                                         prob_sum = sum(valid_probs)
@@ -231,16 +231,16 @@ class Simulator:
                             else:
                                 # No probability matrix available, choose randomly from valid destinations
                                 a_to = np.random.choice(valid_destinations_for_floor)
-                            
+
                             arrival = Arrival(a_times[i], a_sizes[i], a_delays[i], floor, a_to)
                             all_arrivals.append(arrival)
-            
-            
-            
+
+
+
             # Sort all arrivals by time
             all_arrivals.sort(key=lambda x: x.t)
             self.scenario = tuple(all_arrivals)
-            
+
         else:
             # Use original global arrival_pace method for backward compatibility
             n_arrivals = np.random.poisson(self.sim_len * self.arrivals_pace)
@@ -253,20 +253,20 @@ class Simulator:
                                                    (self.p_go_up, self.p_go_down, self.p_go_between)))
             a_from = [(0 if tp=='up' else int(1+self.n_floors*np.random.rand()))
                       for tp in a_types]
-            
+
             # 修改目的地生成邏輯，考慮電梯限制
             a_to = []
             valid_indices = []  # 記錄有效的索引
             for i, tp in enumerate(a_types):
                 from_floor = a_from[i]
                 valid_destinations = self._get_valid_destinations_for_floor(from_floor)
-                
+
                 if not valid_destinations:
                     # 如果這個起始樓層沒有可達目的地，跳過這個arrival
                     continue
-                    
+
                 valid_indices.append(i)  # 記錄這個索引是有效的
-                
+
                 if tp == 'down':
                     # 只選擇向下的目的地
                     down_destinations = [dest for dest in valid_destinations if dest < from_floor]
@@ -308,48 +308,48 @@ class Simulator:
             print(f"\nGenerated {len(self.scenario)} arrival events:")
             for i,arr in enumerate(self.scenario):
                 arr.print(i)
-        
+
         # 使用 AnalysisPlotter 生成乘客流量分析圖表
         if len(self.scenario) > 0:
             try:
-                from AnalysisPlotter import AnalysisPlotter
-                
+                from .AnalysisPlotter import AnalysisPlotter
+
                 # 創建分析繪圖器
                 plotter = AnalysisPlotter(n_floors=self.n_floors)
-                
+
                 # 分析數據並生成圖表
                 flow_matrix, arrivals_per_minute = plotter.analyze_passenger_flow(self.scenario)
-                
+
                 print(f"\n=== 乘客流量分析 ===")
                 print(f"場景總乘客數: {int(flow_matrix.sum())}")
                 print(f"模擬時長: {max(arrivals_per_minute.keys()) + 1} 分鐘" if arrivals_per_minute else "模擬時長: 0 分鐘")
-                
+
                 # 生成並保存圖表
                 print("正在生成乘客流量熱力圖...")
                 plotter.plot_passenger_flow_heatmap(
-                    flow_matrix, 
+                    flow_matrix,
                     prefix=prefix,
                     save_path="passenger_flow_heatmap.png",
                     show_plot=False
                 )
-                
+
                 print("正在生成每分鐘抵達人數直方圖...")
                 plotter.plot_arrivals_per_minute_histogram(
-                    arrivals_per_minute, 
+                    arrivals_per_minute,
                     prefix=prefix,
                     save_path="arrivals_per_minute_histogram.png",
                     show_plot=False
                 )
-                
+
                 # 打印詳細統計信息
                 plotter._print_detailed_statistics(flow_matrix, arrivals_per_minute)
-                
+
                 print("\n圖表已保存:")
                 print("- passenger_flow_heatmap.png (乘客流量熱力圖)")
                 print("- arrivals_per_minute_histogram.png (每分鐘抵達人數直方圖)")
-                
+
                 return arrivals_per_minute
-            
+
             except ImportError:
                 print("\n警告: 無法導入 AnalysisPlotter，跳過圖表生成")
             except Exception as e:
@@ -371,7 +371,7 @@ class Simulator:
                 # Go up
                 return int(floor + 1 + (self.n_floors - floor) * np.random.rand())
             else:
-                # Go down  
+                # Go down
                 return int(floor * np.random.rand())
 
     def run_simulation(self, prefix):
@@ -379,14 +379,14 @@ class Simulator:
         end_sim = False
         while not end_sim:
             end_sim = self.handle_next_event()
-        
+
         # 在模擬完成後生成額外的分析圖表
         try:
-            from AnalysisPlotter import AnalysisPlotter
-            
+            from .AnalysisPlotter import AnalysisPlotter
+
             # 創建分析繪圖器
             plotter = AnalysisPlotter(n_floors=self.n_floors)
-            
+
             # 準備所有乘客的數據
             all_passengers_data = {
                 'completed': self.completed_passengers,
@@ -394,7 +394,7 @@ class Simulator:
                 'waiting': self.waiting_passengers,
                 'sim_time': self.sim_time
             }
-            
+
             # 生成模擬結果分析（包含所有乘客）
             quartile_stats=plotter.generate_simulation_analysis_all_passengers(
                 all_passengers_data,
@@ -402,12 +402,12 @@ class Simulator:
                 save_plots=True,
                 show_plots=False
             )
-            
+
         except ImportError:
             print("\n警告: 無法導入 AnalysisPlotter，跳過模擬結果分析")
         except Exception as e:
             print(f"\n警告: 模擬結果分析失敗: {str(e)}")
-        
+
         return end_sim, all_passengers_data, quartile_stats
 
     def sim_initialize(self):
@@ -416,27 +416,27 @@ class Simulator:
 
         # world
         self.sim_time = 0
-        
+
         # arrivals
         self.future_arrivals = list(self.scenario)
         self.waiting_passengers = []
         self.moving_passengers = [[] for _ in range(self.n_elevators)]
         self.completed_passengers = []
-        
+
         # elevators
         for el in self.el:
             el.initialize()
-        
+
         # manager
         self.manager.initialize()
         missions = self.manager.handle_initialization()
         self.update_missions(missions)
-        
+
         # stats
         self.useless_opens = 0
         self.blocked_entrances = 0
         self.moves_without_open = 0
-        
+
         # visualization
         if self.sim_plot is not None:
             self.sim_plot.initialize()
@@ -499,7 +499,7 @@ class Simulator:
     def end_mission(self):
         i_el = int(np.argmin(self.el_next_event_time))
         el = self.el[i_el]
-        
+
         # Check if there are any missions to process
         if not el.missions:
             # No missions left, handle this case
@@ -512,7 +512,7 @@ class Simulator:
             else:
                 self.update_missions(missions)
             return
-        
+
         m = el.missions[0]
         del(el.missions[0])
 
@@ -544,16 +544,16 @@ class Simulator:
             else:
                 # 不需要開門，跳過這個開門任務
                 del el.missions[0]
-                if self.debug: 
+                if self.debug:
                     self.log("Skip Open", f"#{i_el:02d} at floor {el.x} - no passengers to serve")
-                
+
                 # 繼續處理下一個任務（避免遞歸調用）
                 while el.missions and el.missions[0] is None:
                     # 如果還有連續的開門任務也跳過
                     del el.missions[0]
                     if self.debug:
                         self.log("Skip Open", f"#{i_el:02d} at floor {el.x} - consecutive open task skipped")
-                
+
                 if el.missions:
                     # 還有任務，立即執行下一個
                     if el.missions[0] is not None:
@@ -605,47 +605,47 @@ class Simulator:
         """
         el = self.el[i_el]
         current_floor = int(el.x)  # 確保是整數樓層
-        
+
         # 檢查1：有乘客要下車？
         passengers_exiting = [ps for ps in self.moving_passengers[i_el] if ps.xf == current_floor]
         has_exit = len(passengers_exiting) > 0
-        
+
         # 檢查3：有乘客因為limitations無法到達目的樓層？
-        stranded_passengers = [ps for ps in self.moving_passengers[i_el] 
+        stranded_passengers = [ps for ps in self.moving_passengers[i_el]
                               if not el.can_go_to(ps.xf)]
         has_stranded = len(stranded_passengers) > 0
-        
+
         # 檢查2：有乘客要上車？
         passengers_waiting_here = [ps for ps in self.waiting_passengers if ps.xi == current_floor]
         has_entry = False
-        
+
         for ps in passengers_waiting_here:
             passenger_direction = 1 if ps.xf > ps.xi else -1  # 1=up, -1=down
-            
+
             # 檢查方向是否匹配
             direction_compatible = (el.motion == 0 or el.motion == passenger_direction)
-            
+
             # 檢查是否分配給這台電梯，或者方向匹配可以搭乘
             assigned_to_this = (ps.assigned_el == i_el)
             can_board = direction_compatible and (assigned_to_this or ps.assigned_el == -1)
-            
+
             # 檢查電梯是否有空間
             has_capacity = len(self.moving_passengers[i_el]) < el.capacity
-            
+
             if can_board and has_capacity:
                 has_entry = True
                 break
-        
+
         # Debug信息
         if self.debug and (has_exit or has_entry or has_stranded):
             exit_count = len(passengers_exiting) if has_exit else 0
             stranded_count = len(stranded_passengers) if has_stranded else 0
-            entry_count = len([ps for ps in passengers_waiting_here 
+            entry_count = len([ps for ps in passengers_waiting_here
                               if ps.assigned_el == i_el or ps.assigned_el == -1]) if has_entry else 0
             self.log("Open Check", f"#{i_el:02d} floor {current_floor}: exit={exit_count}, stranded={stranded_count}, entry={entry_count}")
         elif self.debug:
             self.log("Open Check", f"#{i_el:02d} floor {current_floor}: no passengers to serve")
-        
+
         return has_exit or has_entry or has_stranded
 
     def update_missions(self, missions):
@@ -664,17 +664,17 @@ class Simulator:
             # Separate removal missions and process them in reverse order to avoid index shifting
             removal_missions = []
             other_missions = []
-            
+
             for m in missions[i_el]:
                 if m[0] is None:
                     # remove mission m: (None, *, m)
                     removal_missions.append(m)
                 else:
                     other_missions.append(m)
-            
+
             # Sort removal missions by index in descending order to avoid index shifting issues
             removal_missions.sort(key=lambda x: x[2], reverse=True)
-            
+
             # Process removal missions first
             for m in removal_missions:
                 if m[2] < 0 or m[2] >= len(el.missions):
@@ -682,7 +682,7 @@ class Simulator:
                     continue
                 del(el.missions[m[2]])
                 if m[2]==0: immediate_mission = True
-            
+
             # Process other missions
             for m in other_missions:
                 if m[2]==-1:
@@ -759,18 +759,18 @@ class Simulator:
             if ps.xi == el.x:
                 # Check if elevator direction matches passenger's desired direction
                 passenger_direction = 1 if ps.xf > ps.xi else -1  # 1 for up, -1 for down
-                
+
                 # Only allow passengers to board if elevator direction matches their need
                 # or if elevator is stationary (motion == 0)
                 if el.motion != 0 and el.motion != passenger_direction:
                     # Passenger wants different direction, skip this elevator
                     continue
-                
+
                 # If passenger was assigned to a different elevator, update assignment
                 if ps.assigned_el != i:
                     ps.assigned_el = i
                     if self.debug: self.log("Reassigned", f"Passenger {ps.xi}->{ps.xf} switched to available elevator #{i}")
-                
+
                 if el.capacity <= len(self.moving_passengers[i]):
                     # Elevator is full - count block and re-push the button
                     blocked_entrance = True
@@ -786,7 +786,7 @@ class Simulator:
                 ps.t1 = self.sim_time
                 delay = max(delay, ps.d)
                 if self.debug: self.log("Enter", f"#{i:02d}\tt={ps.t1-ps.t0:.0f}s direction={'up' if passenger_direction == 1 else 'down'}")
-        
+
         # remove passengers from waiting list
         for j in sorted(picked_up, reverse=True):
             del self.waiting_passengers[j]
@@ -815,12 +815,12 @@ class Simulator:
             if n_ps_moving else 0
         waiting_max_time = max([self.sim_time-ps.t0 for ps in self.waiting_passengers]) \
             if n_ps_waiting else 0
-        
+
         # Print passenger status
         if verbose:
             print(f"Passenger status at simulation end:")
             print(f"  Waiting: {n_ps_waiting} passengers")
-            print(f"  Inside elevators: {n_ps_moving} passengers") 
+            print(f"  Inside elevators: {n_ps_moving} passengers")
             print(f"  Served: {n_ps_completed} passengers")
             print(f"  Total arrivals: {n_ps_scenario} passengers")
         # Calculate waiting_time for ALL passengers
@@ -832,7 +832,7 @@ class Simulator:
             all_waiting_times.extend([ps.t1 - ps.t0 for ps in ps_list])
         # 3. Waiting passengers: sim_time - t0 (假設現在進入電梯)
         all_waiting_times.extend([self.sim_time - ps.t0 for ps in self.waiting_passengers])
-        
+
         # Calculate inside_time for relevant passengers
         all_inside_times = []
         # 1. Completed passengers: t2 - t1
@@ -840,7 +840,7 @@ class Simulator:
         # 2. Moving passengers: sim_time - t1 (假設現在離開電梯)
         for ps_list in self.moving_passengers:
             all_inside_times.extend([self.sim_time - ps.t1 for ps in ps_list])
-        
+
         # Calculate service_time for ALL passengers
         all_service_times = []
         # 1. Completed passengers: t2 - t0
@@ -850,27 +850,27 @@ class Simulator:
             all_service_times.extend([self.sim_time - ps.t0 for ps in ps_list])
         # 3. Waiting passengers: sim_time - t0
         all_service_times.extend([self.sim_time - ps.t0 for ps in self.waiting_passengers])
-        
+
         # 計算按樓層分組的等待時間統計
         floor_waiting_stats = {}
         floor_waiting_times_dict = defaultdict(list)
-        
+
         # 1. Completed passengers: t1 - t0
         for ps in self.completed_passengers:
             waiting_time = ps.t1 - ps.t0
             floor_waiting_times_dict[ps.xi].append(waiting_time)
-        
-        # 2. Moving passengers: t1 - t0  
+
+        # 2. Moving passengers: t1 - t0
         for ps_list in self.moving_passengers:
             for ps in ps_list:
                 waiting_time = ps.t1 - ps.t0
                 floor_waiting_times_dict[ps.xi].append(waiting_time)
-        
+
         # 3. Waiting passengers: sim_time - t0 (假設現在進入電梯)
         for ps in self.waiting_passengers:
             waiting_time = self.sim_time - ps.t0
             floor_waiting_times_dict[ps.xi].append(waiting_time)
-        
+
         # 計算每個樓層的等待時間統計
         for floor, times in floor_waiting_times_dict.items():
             if times:
@@ -882,29 +882,29 @@ class Simulator:
                     'max': np.max(times),
                     'median': np.median(times)
                 }
-        
+
         # 打印樓層等待時間變異性分析
         if verbose:
             print(f"\n=== Floor-by-Floor Waiting Time Variability Analysis ===")
             print(f"{'Floor':<6} {'Count':<6} {'Mean':<8} {'Std':<8} {'CV':<10} {'Min':<8} {'Max':<8} {'Median':<8}")
             print("-" * 70)
-            
+
             for floor in sorted(floor_waiting_stats.keys()):
                 stats = floor_waiting_stats[floor]
                 floor_name = f"{floor}F" if floor > 0 else "B1"
                 cv = stats['std'] / stats['mean'] if stats['mean'] > 0 else 0  # Coefficient of Variation
-                
+
                 print(f"{floor_name:<6} {stats['count']:<6} {stats['mean']:<8.1f} {stats['std']:<8.1f} "
                       f"{cv:<10.3f} {stats['min']:<8.1f} {stats['max']:<8.1f} {stats['median']:<8.1f}")
-            
+
             # Analyze floors with highest variability
             if floor_waiting_stats:
                 max_std_floor = max(floor_waiting_stats.items(), key=lambda x: x[1]['std'])
                 min_std_floor = min(floor_waiting_stats.items(), key=lambda x: x[1]['std'])
-                
-                max_cv_floor = max(floor_waiting_stats.items(), 
+
+                max_cv_floor = max(floor_waiting_stats.items(),
                                  key=lambda x: x[1]['std']/x[1]['mean'] if x[1]['mean'] > 0 else 0)
-                
+
                 print(f"\nVariability Analysis:")
                 print(f"Floor with highest std dev: {max_std_floor[0]}F (std dev: {max_std_floor[1]['std']:.1f}s)")
                 print(f"Floor with lowest std dev: {min_std_floor[0]}F (std dev: {min_std_floor[1]['std']:.1f}s)")
@@ -981,14 +981,14 @@ class Simulator:
             all_waiting_times.extend([ps.t1 - ps.t0 for ps in ps_list])
         # 3. Waiting passengers: sim_time - t0 (假設現在進入電梯)
         all_waiting_times.extend([self.sim_time - ps.t0 for ps in self.waiting_passengers])
-        
+
         all_inside_times = []
         # 1. Completed passengers: t2 - t1
         all_inside_times.extend([ps.t2 - ps.t1 for ps in self.completed_passengers])
         # 2. Moving passengers: sim_time - t1 (假設現在離開電梯)
         for ps_list in self.moving_passengers:
             all_inside_times.extend([self.sim_time - ps.t1 for ps in ps_list])
-            
+
         all_service_times = []
         # 1. Completed passengers: t2 - t0
         all_service_times.extend([ps.t2 - ps.t0 for ps in self.completed_passengers])
@@ -997,7 +997,7 @@ class Simulator:
             all_service_times.extend([self.sim_time - ps.t0 for ps in ps_list])
         # 3. Waiting passengers: sim_time - t0
         all_service_times.extend([self.sim_time - ps.t0 for ps in self.waiting_passengers])
-        
+
         # 計算分布數據用於繪圖
         t_tot = dist(all_service_times, quants) if all_service_times else [0, 0] + [0]*len(quants)
         t_wait = dist(all_waiting_times, quants) if all_waiting_times else [0, 0] + [0]*len(quants)
@@ -1110,4 +1110,3 @@ class Simulator:
             self.sim_plot.update_plot(dt, self.el,
                                       [wp.xi for wp in self.waiting_passengers],
                                       [len(mp) for mp in self.moving_passengers])
-            

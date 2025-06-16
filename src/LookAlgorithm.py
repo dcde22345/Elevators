@@ -1,5 +1,5 @@
-from MyTools import *
-from ElevatorManager import NaiveManager
+from .MyTools import *
+from .ElevatorManager import NaiveManager
 import numpy as np
 from warnings import warn
 
@@ -102,7 +102,7 @@ class Look(NaiveManager):
             raise ValueError(f"Elevator {l} cannot reach source floor {xi}")
         if not elevator.can_go_to(xf):
             raise ValueError(f"Elevator {l} cannot reach destination floor {xf}")
-            
+
         if   xi < xf:
             self.add_ascend(l,xi,xf)
         elif xi > xf:
@@ -236,16 +236,16 @@ class Look(NaiveManager):
         優先選擇一樓（樓層1），如果不可達則選擇電梯能到達的最低樓層
         """
         elevator = self.el[l]
-        
+
         # 優先選擇一樓
         if elevator.can_go_to(1):
             return 1
-        
+
         # 如果一樓不可達，選擇能到達的最低樓層
         for floor in range(self.H + 1):
             if elevator.can_go_to(floor):
                 return floor
-        
+
         # 如果沒有任何樓層可達（不應該發生），返回當前樓層
         return int(elevator.x)
 
@@ -255,7 +255,7 @@ class Look(NaiveManager):
         1. 優先分配給正在朝請求方向運行且會經過該樓層的電梯（順路同方向）。
         2. 若無順路電梯，分配給最近的靜止電梯。
         3. 若都沒有，分配給最近的電梯。
-        
+
         新增：考慮電梯limitations，只分配給能到達起始樓層和目的樓層的電梯
         """
         passenger_direction = 1 if xf > xi else -1
@@ -265,7 +265,7 @@ class Look(NaiveManager):
         for l in range(self.N):
             if self.el[l].can_go_to(xi) and self.el[l].can_go_to(xf):
                 capable_elevators.append(l)
-        
+
         # 如果沒有電梯能服務這個請求，拋出異常
         if not capable_elevators:
             raise ValueError(f"No elevator can serve passenger from floor {xi} to floor {xf}")

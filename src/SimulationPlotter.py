@@ -1,5 +1,4 @@
-
-from MyTools import *
+from .MyTools import *
 from time import sleep
 import matplotlib.pyplot as plt
 
@@ -42,11 +41,11 @@ class SimPlotter:
                             markerfacecolor='r',markeredgewidth=3)[0]
                    for i in range(self.W)]
         # waiting passengers
-        self.wps = [plt.text(-1, i, '', fontsize=12, color='blue', 
+        self.wps = [plt.text(-1, i, '', fontsize=12, color='blue',
                              ha='center', va='center', weight='bold')
                     for i in range(self.H)]
         # moving passengers
-        self.mps = [plt.text(i, self.y[i], '', fontsize=12, color='green', 
+        self.mps = [plt.text(i, self.y[i], '', fontsize=12, color='green',
                              ha='center', va='center', weight='bold')
                     for i in range(self.W)]
 
