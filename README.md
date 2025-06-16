@@ -9,6 +9,7 @@ To make the project easier to maintain and expand, we have organized the directo
 ```
 .
 ├── Raw_and_Cleaned_Data/  # Raw and cleaned data
+├── draw_graph_or_collete_data/ # Jupyter notebooks for analysis and visualization
 ├── images/                  # Contains all analysis charts
 │   ├── monte_carlo/
 │   ├── no_limitations/
