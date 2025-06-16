@@ -92,11 +92,34 @@ if __name__ == "__main__":
         [0.5, 4, 0, 0, 0.5, 0, 0.5, 0, 0, 0, 0, 0, 0]
     ]
 
+    data_with_faculty_in = [
+        [0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 1],                        # B1f
+        [1, 0, 0, 16.5, 16.5, 11, 30.5, 28.5, 20.5, 35.5, 57.5, 56.5, 63],      # 1f
+        [0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0],                          # 2f
+        [0, 4, 0, 0, 0, 0, 0, 0, 0, 4.5, 0, 0, 0],                          # 3f
+        [0, 13.5, 0.5, 0, 0, 0, 0.5, 0.5, 0.5, 1, 0.5, 0, 0],               # 4f
+        [0, 7.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],                          # 5f
+        [0.5, 12.5, 0.5, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0.5, 0.5],             # 6f
+        [0.5, 7.5, 1.5, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.5, 0.5],                # 7f
+        [0, 6.5, 0.5, 0.5, 1, 0, 0, 0, 0, 0, 0, 0, 0],                      # 8f
+        [0, 32, 0, 0.5, 1, 0.5, 0.5, 1, 0, 0, 0, 0, 0],                      # 9f
+        [0, 58, 0, 0, 0.5, 0, 0.5, 1.5, 0, 0, 0.5, 0, 0],                    # 10f
+        [0, 55, 0, 0, 0, 1, 0, 0.5, 0, 0, 0, 0, 0],                          # 11f
+        [0.5, 63, 0, 0, 0.5, 0, 0.5, 0, 0, 0, 0, 0, 0]                       # 12f
+    ]
+
     limitations = [
-        None,                         # 能夠到達B1-12樓
-        [2, 3, 4, 5],            # 能夠到達B1, 1樓, 6樓-12樓
-        [0, 2, 3, 5, 7, 9, 11],  # 能夠到達4, 6, 8, 10, 12樓
-        [0, 2, 4, 6, 8, 10, 12]  # 能夠到達3, 5, 7, 9, 11樓
+        None,                       # 能夠到達B1-12樓
+        [2, 3, 4, 5],               # 能夠到達B1, 1樓, 6樓-12樓
+        [0, 2, 3, 5, 7, 9, 11],     # 能夠到達4, 6, 8, 10, 12樓
+        [0, 2, 4, 6, 8, 10, 12]     # 能夠到達3, 5, 7, 9, 11樓
+    ]
+
+    privilege_limitations = [
+        [2, 3, 4, 5, 6, 7, 8],      # 能夠到 1, 9, 10, 11, 12樓
+        None,                       # 能夠到 B1-12樓
+        None,                       # 能夠到 1-12樓
+        None                        # 能夠到 1-12樓
     ]
 
     def run_elevator_simulation(data, sim_pace=None, manager=Look, limitations=None, seed=1, prefix=None):
@@ -436,79 +459,124 @@ if __name__ == "__main__":
     limit_total_quartile_stats = []
     limit_arrivals_per_minute = []
 
+    # ================================================================================================================
+    # 有教職員在的資料
+
+    data_with_faculty_in_summary = []
+    data_with_faculty_in_all_passengers_data = []
+    data_with_faculty_in_floor_quartile_stats = []
+    data_with_faculty_in_total_quartile_stats = []
+    data_with_faculty_in_arrivals_per_minute = []
+
+    limit_data_with_faculty_in_summary = []
+    limit_data_with_faculty_in_all_passengers_data = []
+    limit_data_with_faculty_in_floor_quartile_stats = []
+    limit_data_with_faculty_in_total_quartile_stats = []
+    limit_data_with_faculty_in_arrivals_per_minute = []
+
+    priviliged_data_with_faculty_in_summary = []
+    priviliged_data_with_faculty_in_all_passengers_data = []
+    priviliged_data_with_faculty_in_floor_quartile_stats = []
+    priviliged_data_with_faculty_in_total_quartile_stats = []
+    priviliged_data_with_faculty_in_arrivals_per_minute = []
+
     # Monte Carlo simulation loop
-    for i in range(1000):  # 改为3次展示蒙特卡罗效果
-        print(f"\n=== Simulation {i+1}/{3} ===")
+    for i in range(3):  # 改为3次展示蒙特卡罗效果
+        # print(f"\n=== Simulation {i+1}/{3} ===")
         
-        # -----------------------limitations-----------------------
-        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data, sim_pace=100, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_{i}")
-        limit_summary.append(summary)
-        limit_all_passengers_data.append(all_passengers_data)
-        limit_floor_quartile_stats.append(quartile_stats['floor'])
-        limit_total_quartile_stats.append(quartile_stats['total'])
-        limit_arrivals_per_minute.append(arrivals_per_minute)
+        # # -----------------------limitations-----------------------
+        # summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data, sim_pace=100, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_{i}")
+        # limit_summary.append(summary)
+        # limit_all_passengers_data.append(all_passengers_data)
+        # limit_floor_quartile_stats.append(quartile_stats['floor'])
+        # limit_total_quartile_stats.append(quartile_stats['total'])
+        # limit_arrivals_per_minute.append(arrivals_per_minute)
         
-        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_60_at_six_floor_{i}")
-        limit_data_60_at_six_floor_summary.append(summary)
-        limit_data_60_at_six_floor_all_passengers_data.append(all_passengers_data)
-        limit_data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        limit_data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
-        limit_data_60_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
+        # summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_60_at_six_floor_{i}")
+        # limit_data_60_at_six_floor_summary.append(summary)
+        # limit_data_60_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # limit_data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # limit_data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # limit_data_60_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
         
-        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_120_at_six_floor_{i}")
-        limit_data_120_at_six_floor_summary.append(summary)
-        limit_data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
-        limit_data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        limit_data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
-        limit_data_120_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
+        # summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_120_at_six_floor_{i}")
+        # limit_data_120_at_six_floor_summary.append(summary)
+        # limit_data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # limit_data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # limit_data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # limit_data_120_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
 
-        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_180_at_six_floor_{i}")
-        limit_data_180_at_six_floor_summary.append(summary)
-        limit_data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
-        limit_data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        limit_data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
-        limit_data_180_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
+        # summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_180_at_six_floor_{i}")
+        # limit_data_180_at_six_floor_summary.append(summary)
+        # limit_data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # limit_data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # limit_data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # limit_data_180_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
 
-        # -----------------------no limitations-----------------------
-        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(new_data, sim_pace=None, manager=Look, limitations=None, seed=i+1, prefix=f"no_limit_{i}")
-        no_limit_summary.append(summary)
-        no_limit_all_passengers_data.append(all_passengers_data)
-        no_limit_floor_quartile_stats.append(quartile_stats['floor'])
-        no_limit_total_quartile_stats.append(quartile_stats['total'])
-        no_limit_arrivals_per_minute.append(arrivals_per_minute)
+        # # -----------------------no limitations-----------------------
+        # summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(new_data, sim_pace=None, manager=Look, limitations=None, seed=i+1, prefix=f"no_limit_{i}")
+        # no_limit_summary.append(summary)
+        # no_limit_all_passengers_data.append(all_passengers_data)
+        # no_limit_floor_quartile_stats.append(quartile_stats['floor'])
+        # no_limit_total_quartile_stats.append(quartile_stats['total'])
+        # no_limit_arrivals_per_minute.append(arrivals_per_minute)
         
-        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_60_at_six_floor_{i}")
-        data_60_at_six_floor_summary.append(summary)
-        data_60_at_six_floor_all_passengers_data.append(all_passengers_data)
-        data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
-        data_60_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
+        # summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_60_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_60_at_six_floor_{i}")
+        # data_60_at_six_floor_summary.append(summary)
+        # data_60_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # data_60_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # data_60_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # data_60_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
         
-        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_120_at_six_floor_{i}")
-        data_120_at_six_floor_summary.append(summary)
-        data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
-        data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
-        data_120_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
+        # summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_120_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_120_at_six_floor_{i}")
+        # data_120_at_six_floor_summary.append(summary)
+        # data_120_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # data_120_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # data_120_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # data_120_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
 
-        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_180_at_six_floor_{i}")
-        data_180_at_six_floor_summary.append(summary)
-        data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
-        data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
-        data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
-        data_180_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
+        # summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_180_at_six_floor, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_180_at_six_floor_{i}")
+        # data_180_at_six_floor_summary.append(summary)
+        # data_180_at_six_floor_all_passengers_data.append(all_passengers_data)
+        # data_180_at_six_floor_floor_quartile_stats.append(quartile_stats['floor'])
+        # data_180_at_six_floor_total_quartile_stats.append(quartile_stats['total'])
+        # data_180_at_six_floor_arrivals_per_minute.append(arrivals_per_minute)
+
+        # -----------------------with faculty in-----------------------
+        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_with_faculty_in, sim_pace=None, manager=Look, limitations=None, seed=i+5, prefix=f"data_with_faculty_in_{i}")
+        data_with_faculty_in_summary.append(summary)
+        data_with_faculty_in_all_passengers_data.append(all_passengers_data)
+        data_with_faculty_in_floor_quartile_stats.append(quartile_stats['floor'])
+        data_with_faculty_in_total_quartile_stats.append(quartile_stats['total'])
+        data_with_faculty_in_arrivals_per_minute.append(arrivals_per_minute)
+
+        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_with_faculty_in, sim_pace=None, manager=Look, limitations=limitations, seed=i+5, prefix=f"limit_data_with_faculty_in_{i}")
+        limit_data_with_faculty_in_summary.append(summary)
+        limit_data_with_faculty_in_all_passengers_data.append(all_passengers_data)
+        limit_data_with_faculty_in_floor_quartile_stats.append(quartile_stats['floor']) 
+        limit_data_with_faculty_in_total_quartile_stats.append(quartile_stats['total'])
+        limit_data_with_faculty_in_arrivals_per_minute.append(arrivals_per_minute)
+
+        summary, all_passengers_data, quartile_stats, arrivals_per_minute = run_elevator_simulation(data_with_faculty_in, sim_pace=None, manager=Look, limitations=privilege_limitations, seed=i+5, prefix=f"priviliged_data_with_faculty_in_{i}")
+        priviliged_data_with_faculty_in_summary.append(summary)
+        priviliged_data_with_faculty_in_all_passengers_data.append(all_passengers_data)
+        priviliged_data_with_faculty_in_floor_quartile_stats.append(quartile_stats['floor'])
+        priviliged_data_with_faculty_in_total_quartile_stats.append(quartile_stats['total'])
+        priviliged_data_with_faculty_in_arrivals_per_minute.append(arrivals_per_minute)
 
     # ================================================================================================================
     # 在所有模拟完成后，计算蒙特卡罗平均值
-    data_60_results = calculate_monte_carlo_averages(data_60_at_six_floor_summary, data_60_at_six_floor_all_passengers_data, data_60_at_six_floor_arrivals_per_minute, "60_at_six_floor")
-    limit_data_60_results = calculate_monte_carlo_averages(limit_data_60_at_six_floor_summary, limit_data_60_at_six_floor_all_passengers_data, limit_data_60_at_six_floor_arrivals_per_minute, "limit_60_at_six_floor")
-    data_120_results = calculate_monte_carlo_averages(data_120_at_six_floor_summary, data_120_at_six_floor_all_passengers_data, data_120_at_six_floor_arrivals_per_minute, "120_at_six_floor") 
-    limit_data_120_results = calculate_monte_carlo_averages(limit_data_120_at_six_floor_summary, limit_data_120_at_six_floor_all_passengers_data, limit_data_120_at_six_floor_arrivals_per_minute, "limit_120_at_six_floor")
-    data_180_results = calculate_monte_carlo_averages(data_180_at_six_floor_summary, data_180_at_six_floor_all_passengers_data, data_180_at_six_floor_arrivals_per_minute, "180_at_six_floor")
-    limit_data_180_results = calculate_monte_carlo_averages(limit_data_180_at_six_floor_summary, limit_data_180_at_six_floor_all_passengers_data, limit_data_180_at_six_floor_arrivals_per_minute, "limit_180_at_six_floor")
-    limit_results = calculate_monte_carlo_averages(limit_summary, limit_all_passengers_data, limit_arrivals_per_minute, "with_limitations")
-    no_limit_results = calculate_monte_carlo_averages(no_limit_summary, no_limit_all_passengers_data, no_limit_arrivals_per_minute, "no_limitations")
-    
+    # data_60_results = calculate_monte_carlo_averages(data_60_at_six_floor_summary, data_60_at_six_floor_all_passengers_data, data_60_at_six_floor_arrivals_per_minute, "60_at_six_floor")
+    # limit_data_60_results = calculate_monte_carlo_averages(limit_data_60_at_six_floor_summary, limit_data_60_at_six_floor_all_passengers_data, limit_data_60_at_six_floor_arrivals_per_minute, "limit_60_at_six_floor")
+    # data_120_results = calculate_monte_carlo_averages(data_120_at_six_floor_summary, data_120_at_six_floor_all_passengers_data, data_120_at_six_floor_arrivals_per_minute, "120_at_six_floor") 
+    # limit_data_120_results = calculate_monte_carlo_averages(limit_data_120_at_six_floor_summary, limit_data_120_at_six_floor_all_passengers_data, limit_data_120_at_six_floor_arrivals_per_minute, "limit_120_at_six_floor")
+    # data_180_results = calculate_monte_carlo_averages(data_180_at_six_floor_summary, data_180_at_six_floor_all_passengers_data, data_180_at_six_floor_arrivals_per_minute, "180_at_six_floor")
+    # limit_data_180_results = calculate_monte_carlo_averages(limit_data_180_at_six_floor_summary, limit_data_180_at_six_floor_all_passengers_data, limit_data_180_at_six_floor_arrivals_per_minute, "limit_180_at_six_floor")
+    # limit_results = calculate_monte_carlo_averages(limit_summary, limit_all_passengers_data, limit_arrivals_per_minute, "with_limitations")
+    # no_limit_results = calculate_monte_carlo_averages(no_limit_summary, no_limit_all_passengers_data, no_limit_arrivals_per_minute, "no_limitations")
+    # data_with_faculty_in_results = calculate_monte_carlo_averages(data_with_faculty_in_summary, data_with_faculty_in_all_passengers_data, data_with_faculty_in_arrivals_per_minute, "data_with_faculty_in")
+    limit_data_with_faculty_in_results = calculate_monte_carlo_averages(limit_data_with_faculty_in_summary, limit_data_with_faculty_in_all_passengers_data, limit_data_with_faculty_in_arrivals_per_minute, "limit_data_with_faculty_in")
+    priviliged_data_with_faculty_in_results = calculate_monte_carlo_averages(priviliged_data_with_faculty_in_summary, priviliged_data_with_faculty_in_all_passengers_data, priviliged_data_with_faculty_in_arrivals_per_minute, "priviliged_data_with_faculty_in")
 
     # ================================================================================================================
     # 將quartile_stats合併成pandas dataframe並存進csv
@@ -516,45 +584,66 @@ if __name__ == "__main__":
     os.makedirs("quartile_stats/floor", exist_ok=True)
     os.makedirs("quartile_stats/total", exist_ok=True)
 
-    data_60_at_six_floor_floor_quartile_stats_df = pd.DataFrame(data_60_at_six_floor_floor_quartile_stats)
-    data_60_at_six_floor_total_quartile_stats_df = pd.DataFrame(data_60_at_six_floor_total_quartile_stats)
-    data_60_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/data_60_at_six_floor_floor_quartile_stats.csv", index=False)
-    data_60_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/data_60_at_six_floor_total_quartile_stats.csv", index=False)
+    # data_60_at_six_floor_floor_quartile_stats_df = pd.DataFrame(data_60_at_six_floor_floor_quartile_stats)
+    # data_60_at_six_floor_total_quartile_stats_df = pd.DataFrame(data_60_at_six_floor_total_quartile_stats)
+    # data_60_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/data_60_at_six_floor_floor_quartile_stats.csv", index=False)
+    # data_60_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/data_60_at_six_floor_total_quartile_stats.csv", index=False)
 
-    limit_data_120_at_six_floor_floor_quartile_stats_df = pd.DataFrame(limit_data_60_at_six_floor_floor_quartile_stats)
-    limit_data_120_at_six_floor_total_quartile_stats_df = pd.DataFrame(limit_data_60_at_six_floor_total_quartile_stats)
-    limit_data_120_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_data_120_at_six_floor_floor_quartile_stats.csv", index=False)
-    limit_data_120_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/limit_data_120_at_six_floor_total_quartile_stats.csv", index=False)
+    # limit_data_120_at_six_floor_floor_quartile_stats_df = pd.DataFrame(limit_data_60_at_six_floor_floor_quartile_stats)
+    # limit_data_120_at_six_floor_total_quartile_stats_df = pd.DataFrame(limit_data_60_at_six_floor_total_quartile_stats)
+    # limit_data_120_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_data_120_at_six_floor_floor_quartile_stats.csv", index=False)
+    # limit_data_120_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/limit_data_120_at_six_floor_total_quartile_stats.csv", index=False)
 
-    data_120_at_six_floor_floor_quartile_stats_df = pd.DataFrame(data_120_at_six_floor_floor_quartile_stats)
-    data_120_at_six_floor_total_quartile_stats_df = pd.DataFrame(data_120_at_six_floor_total_quartile_stats)
-    data_120_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/data_120_at_six_floor_floor_quartile_stats.csv", index=False)
-    data_120_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/data_120_at_six_floor_total_quartile_stats.csv", index=False)
+    # data_120_at_six_floor_floor_quartile_stats_df = pd.DataFrame(data_120_at_six_floor_floor_quartile_stats)
+    # data_120_at_six_floor_total_quartile_stats_df = pd.DataFrame(data_120_at_six_floor_total_quartile_stats)
+    # data_120_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/data_120_at_six_floor_floor_quartile_stats.csv", index=False)
+    # data_120_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/data_120_at_six_floor_total_quartile_stats.csv", index=False)
 
-    limit_data_120_at_six_floor_floor_quartile_stats_df = pd.DataFrame(limit_data_120_at_six_floor_floor_quartile_stats)
-    limit_data_120_at_six_floor_total_quartile_stats_df = pd.DataFrame(limit_data_120_at_six_floor_total_quartile_stats)
-    limit_data_120_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_data_120_at_six_floor_floor_quartile_stats.csv", index=False)
-    limit_data_120_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/limit_data_120_at_six_floor_total_quartile_stats.csv", index=False)
+    # limit_data_120_at_six_floor_floor_quartile_stats_df = pd.DataFrame(limit_data_120_at_six_floor_floor_quartile_stats)
+    # limit_data_120_at_six_floor_total_quartile_stats_df = pd.DataFrame(limit_data_120_at_six_floor_total_quartile_stats)
+    # limit_data_120_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_data_120_at_six_floor_floor_quartile_stats.csv", index=False)
+    # limit_data_120_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/limit_data_120_at_six_floor_total_quartile_stats.csv", index=False)
 
-    data_180_at_six_floor_floor_quartile_stats_df = pd.DataFrame(data_180_at_six_floor_floor_quartile_stats)
-    data_180_at_six_floor_total_quartile_stats_df = pd.DataFrame(data_180_at_six_floor_total_quartile_stats)
-    data_180_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/data_180_at_six_floor_floor_quartile_stats.csv", index=False)
-    data_180_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/data_180_at_six_floor_total_quartile_stats.csv", index=False)
+    # data_180_at_six_floor_floor_quartile_stats_df = pd.DataFrame(data_180_at_six_floor_floor_quartile_stats)
+    # data_180_at_six_floor_total_quartile_stats_df = pd.DataFrame(data_180_at_six_floor_total_quartile_stats)
+    # data_180_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/data_180_at_six_floor_floor_quartile_stats.csv", index=False)
+    # data_180_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/data_180_at_six_floor_total_quartile_stats.csv", index=False)
 
-    limit_data_180_at_six_floor_floor_quartile_stats_df = pd.DataFrame(limit_data_180_at_six_floor_floor_quartile_stats)
-    limit_data_180_at_six_floor_total_quartile_stats_df = pd.DataFrame(limit_data_180_at_six_floor_total_quartile_stats)
-    limit_data_180_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_data_180_at_six_floor_floor_quartile_stats.csv", index=False)
-    limit_data_180_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/limit_data_180_at_six_floor_total_quartile_stats.csv", index=False)
+    # limit_data_180_at_six_floor_floor_quartile_stats_df = pd.DataFrame(limit_data_180_at_six_floor_floor_quartile_stats)
+    # limit_data_180_at_six_floor_total_quartile_stats_df = pd.DataFrame(limit_data_180_at_six_floor_total_quartile_stats)
+    # limit_data_180_at_six_floor_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_data_180_at_six_floor_floor_quartile_stats.csv", index=False)
+    # limit_data_180_at_six_floor_total_quartile_stats_df.to_csv("quartile_stats/total/limit_data_180_at_six_floor_total_quartile_stats.csv", index=False)
 
-    limit_floor_quartile_stats_df = pd.DataFrame(limit_floor_quartile_stats)
-    limit_total_quartile_stats_df = pd.DataFrame(limit_total_quartile_stats)
-    limit_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_floor_quartile_stats.csv", index=False)
-    limit_total_quartile_stats_df.to_csv("quartile_stats/total/limit_total_quartile_stats.csv", index=False)
+    # limit_floor_quartile_stats_df = pd.DataFrame(limit_floor_quartile_stats)
+    # limit_total_quartile_stats_df = pd.DataFrame(limit_total_quartile_stats)
+    # limit_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_floor_quartile_stats.csv", index=False)
+    # limit_total_quartile_stats_df.to_csv("quartile_stats/total/limit_total_quartile_stats.csv", index=False)
 
-    no_limit_floor_quartile_stats_df = pd.DataFrame(no_limit_floor_quartile_stats)
-    no_limit_total_quartile_stats_df = pd.DataFrame(no_limit_total_quartile_stats)
-    no_limit_floor_quartile_stats_df.to_csv("quartile_stats/floor/no_limit_floor_quartile_stats.csv", index=False)
-    no_limit_total_quartile_stats_df.to_csv("quartile_stats/total/no_limit_total_quartile_stats.csv", index=False)
+    # no_limit_floor_quartile_stats_df = pd.DataFrame(no_limit_floor_quartile_stats)
+    # no_limit_total_quartile_stats_df = pd.DataFrame(no_limit_total_quartile_stats)
+    # no_limit_floor_quartile_stats_df.to_csv("quartile_stats/floor/no_limit_floor_quartile_stats.csv", index=False)
+    # no_limit_total_quartile_stats_df.to_csv("quartile_stats/total/no_limit_total_quartile_stats.csv", index=False)
+
+
+    # ================================================================================================================
+    # 有教職員在的資料
+
+    data_with_faculty_in_floor_quartile_stats_df = pd.DataFrame(data_with_faculty_in_floor_quartile_stats)
+    data_with_faculty_in_total_quartile_stats_df = pd.DataFrame(data_with_faculty_in_total_quartile_stats)
+    data_with_faculty_in_floor_quartile_stats_df.to_csv("quartile_stats/floor/data_with_faculty_in_floor_quartile_stats.csv", index=False)
+    data_with_faculty_in_total_quartile_stats_df.to_csv("quartile_stats/total/data_with_faculty_in_total_quartile_stats.csv", index=False)
+
+    limit_data_with_faculty_in_floor_quartile_stats_df = pd.DataFrame(limit_data_with_faculty_in_floor_quartile_stats)
+    limit_data_with_faculty_in_total_quartile_stats_df = pd.DataFrame(limit_data_with_faculty_in_total_quartile_stats)
+    limit_data_with_faculty_in_floor_quartile_stats_df.to_csv("quartile_stats/floor/limit_data_with_faculty_in_floor_quartile_stats.csv", index=False)
+    limit_data_with_faculty_in_total_quartile_stats_df.to_csv("quartile_stats/total/limit_data_with_faculty_in_total_quartile_stats.csv", index=False)
+
+    priviliged_data_with_faculty_in_floor_quartile_stats_df = pd.DataFrame(priviliged_data_with_faculty_in_floor_quartile_stats)
+    priviliged_data_with_faculty_in_total_quartile_stats_df = pd.DataFrame(priviliged_data_with_faculty_in_total_quartile_stats)
+    priviliged_data_with_faculty_in_floor_quartile_stats_df.to_csv("quartile_stats/floor/priviliged_data_with_faculty_in_floor_quartile_stats.csv", index=False)
+    priviliged_data_with_faculty_in_total_quartile_stats_df.to_csv("quartile_stats/total/priviliged_data_with_faculty_in_total_quartile_stats.csv", index=False)
+
+
 
     # ================================================================================================================
     # 使用AnalysisPlotter生成所有模拟结果的综合分析图表
@@ -563,14 +652,17 @@ if __name__ == "__main__":
     
     # 为每个场景生成分析图表
     scenarios_data = [
-        ("data_60_at_six_floor", data_60_at_six_floor_all_passengers_data),
-        ("limit_data_60_at_six_floor", limit_data_60_at_six_floor_all_passengers_data),
-        ("data_120_at_six_floor", data_120_at_six_floor_all_passengers_data),
-        ("limit_data_120_at_six_floor", limit_data_120_at_six_floor_all_passengers_data),
-        ("data_180_at_six_floor", data_180_at_six_floor_all_passengers_data),
-        ("limit_data_180_at_six_floor", limit_data_180_at_six_floor_all_passengers_data),
-        ("with_limitations", limit_all_passengers_data),
-        ("no_limitations", no_limit_all_passengers_data)
+        # ("data_60_at_six_floor", data_60_at_six_floor_all_passengers_data),
+        # ("limit_data_60_at_six_floor", limit_data_60_at_six_floor_all_passengers_data),
+        # ("data_120_at_six_floor", data_120_at_six_floor_all_passengers_data),
+        # ("limit_data_120_at_six_floor", limit_data_120_at_six_floor_all_passengers_data),
+        # ("data_180_at_six_floor", data_180_at_six_floor_all_passengers_data),
+        # ("limit_data_180_at_six_floor", limit_data_180_at_six_floor_all_passengers_data),
+        # ("with_limitations", limit_all_passengers_data),
+        # ("no_limitations", no_limit_all_passengers_data),
+        ("data_with_faculty_in", data_with_faculty_in_all_passengers_data),
+        ("limit_data_with_faculty_in", limit_data_with_faculty_in_all_passengers_data),
+        ("priviliged_data_with_faculty_in", priviliged_data_with_faculty_in_all_passengers_data)
     ]
     
     for scenario_name, all_passengers_data_list in scenarios_data:
@@ -624,14 +716,17 @@ if __name__ == "__main__":
     # 比较不同场景
     print(f"\n=== Scenario Comparison (Monte Carlo Averages) ===")
     scenarios = [
-        ("60_at_six_floor", data_60_results),
-        ("limit_60_at_six_floor", limit_data_60_results),
-        ("120_at_six_floor", data_120_results), 
-        ("limit_120_at_six_floor", limit_data_120_results),
-        ("180_at_six_floor", data_180_results),
-        ("limit_180_at_six_floor", limit_data_180_results),
-        ("with_limitations", limit_results),
-        ("no_limitations", no_limit_results)
+        # ("60_at_six_floor", data_60_results),
+        # ("limit_60_at_six_floor", limit_data_60_results),
+        # ("120_at_six_floor", data_120_results), 
+        # ("limit_120_at_six_floor", limit_data_120_results),
+        # ("180_at_six_floor", data_180_results),
+        # ("limit_180_at_six_floor", limit_data_180_results),
+        # ("with_limitations", limit_results),
+        # ("no_limitations", no_limit_results),
+        ("data_with_faculty_in", data_with_faculty_in_all_passengers_data),
+        ("limit_data_with_faculty_in", limit_data_with_faculty_in_all_passengers_data),
+        ("priviliged_data_with_faculty_in", priviliged_data_with_faculty_in_all_passengers_data)
     ]
     
     print(f"{'Scenario':<20} {'Avg Served':<12} {'Avg Wait Time':<15} {'Avg Inside Time':<16} {'Avg Service Time':<16}")
